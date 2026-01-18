@@ -23,7 +23,7 @@ const UserSignUp = () => {
     if (isLoading) {
       timer = setTimeout(() => {
         setShowSlowMessage(true);
-      }, 2000); // If loading takes > 2s, show message
+      }, 2000);
     } else {
       setShowSlowMessage(false);
     }
@@ -37,7 +37,6 @@ const UserSignUp = () => {
     try {
       console.log(`Sending signup request to: ${API_URL}/auth/signup`);
 
-      // Add a timeout to prevent infinite hanging (e.g., 20 seconds)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
@@ -50,20 +49,31 @@ const UserSignUp = () => {
 
       clearTimeout(timeoutId);
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error("Non-JSON response received:", text);
+        throw new Error("Server returned non-JSON response. Check console for details.");
+      }
+
       if (response.ok) {
         console.log("Signup successful");
         navigate("/login");
       } else {
         console.error("Signup failed:", data);
-        setErrorMessage(data.message || data.errors || "Sign-up failed. Try again.");
+        setErrorMessage(data.message || data.errors || `Error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Signup connection error:", error);
+      console.error("Signup connection error DETAILS:", error);
       if (error.name === 'AbortError') {
         setErrorMessage("Request timed out. The server might be waking up, please try again.");
+      } else if (error.message.includes("Failed to fetch")) {
+        setErrorMessage(`Connection refused. Is the backend running? (${error.message})`);
       } else {
-        setErrorMessage("An error occurred. Please try again.");
+        setErrorMessage(`An error occurred: ${error.message}`);
       }
     } finally {
       setIsLoading(false);
