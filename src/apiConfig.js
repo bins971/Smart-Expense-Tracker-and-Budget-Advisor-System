@@ -1,2 +1,2 @@
-// In production (same origin), requests go to /api
-export const API_URL = "/api";
+// Direct connection to backend (bypass proxy for debugging)
+export const API_URL = "http://localhost:5000/api";
