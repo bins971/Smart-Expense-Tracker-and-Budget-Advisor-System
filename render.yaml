@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: personal-finance-tracker
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run server
+    envVars:
+      - key: NODE_ENV
+        value: production

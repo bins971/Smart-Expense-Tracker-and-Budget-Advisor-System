@@ -1,2 +1,2 @@
-// In development (with proxy) and production, requests go to /api
+// In production (same origin), requests go to /api
 export const API_URL = "/api";
