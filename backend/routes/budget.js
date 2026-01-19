@@ -174,7 +174,6 @@ router.put('/update/:id', async (req, res) => {
     });
     await history.save();
 
-    // Reset: Clear expenses for the new budget period
     await Expense.deleteMany({ user: userId });
 
     // Update the budget to new values
@@ -212,13 +211,13 @@ router.get('/fetch/:userId', async (req, res) => {
           let temp = new Date(start);
           while (temp <= end) {
             const subDate = new Date(temp.getFullYear(), temp.getMonth(), new Date(sub.startDate).getDate());
-            if (subDate >= start && subDate <= end && subDate <= today) subscriptionTotal += sub.amount;
+            if (subDate >= start && subDate <= end) subscriptionTotal += sub.amount;
             temp.setMonth(temp.getMonth() + 1);
           }
         } else if (sub.cycle === 'Yearly') {
           const subStart = new Date(sub.startDate);
           const subDate = new Date(start.getFullYear(), subStart.getMonth(), subStart.getDate());
-          if (subDate >= start && subDate <= end && subDate <= today) subscriptionTotal += sub.amount;
+          if (subDate >= start && subDate <= end) subscriptionTotal += sub.amount;
         }
       });
 

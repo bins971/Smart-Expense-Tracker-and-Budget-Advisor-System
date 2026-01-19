@@ -65,14 +65,12 @@ exports.getGoalsByEmail = async (req, res) => {
   await connectDB();
   const { email } = req.params;
   try {
-    // console.log(`Fetching goals for email: ${email}`);
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
     const goals = await Goal.find({ user: user._id });
-    // Return empty array instead of 404 if no goals found, to be safer for frontend
     res.status(200).json(goals);
   } catch (error) {
     console.error('Error fetching goals:', error.message);

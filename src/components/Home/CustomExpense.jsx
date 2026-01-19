@@ -63,7 +63,6 @@ export default function CheckExpense() {
         <p>No expenses to show.</p>
       )}
 
-      {/* "View All" / "Show Less" button always visible */}
       {expenses.length > 4 && (
         <div className={styles.viewAllButtonContainer}>
           <button onClick={handleViewAll} className={styles.viewAllButton}>

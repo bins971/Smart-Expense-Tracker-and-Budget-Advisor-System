@@ -192,7 +192,6 @@
   box-shadow: var(--glass-shadow);
 }
 
-/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -208,10 +207,8 @@
 .fadeInUp {
   animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   opacity: 0;
-  /* Initially hidden */
 }
 
-/* Stagger delays for grid items */
 .delay1 {
   animation-delay: 0.1s;
 }
@@ -228,7 +225,6 @@
   animation-delay: 0.4s;
 }
 
-/* Greeting Text Animation */
 @keyframes slideInLeft {
   from {
     opacity: 0;
@@ -245,7 +241,6 @@
   animation: slideInLeft 0.8s ease-out forwards;
 }
 
-/* Glass Card improvements */
 .glassCard {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);

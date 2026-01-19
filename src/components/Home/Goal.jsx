@@ -109,7 +109,6 @@ const MyGoal = () => {
 
   const closeCongratsModal = () => setShowCongrats(false);
 
-  // Categorize goals
   const accomplishedGoals = goals.filter((goal) => goal.saved >= goal.amount);
   const notAccomplishedGoals = goals.filter((goal) => goal.saved < goal.amount);
 
@@ -167,7 +166,6 @@ const MyGoal = () => {
           </Card>
         ) : (
           <>
-            {/* Accomplished Goals Section */}
             {accomplishedGoals.length > 0 && (
               <Box sx={{ marginBottom: 6 }}>
                 <Typography variant="h4" sx={{
@@ -219,7 +217,6 @@ const MyGoal = () => {
               </Box>
             )}
 
-            {/* Not Accomplished Goals Section */}
             {notAccomplishedGoals.length > 0 && (
               <Box>
                 <Typography variant="h4" sx={{
@@ -304,7 +301,6 @@ const MyGoal = () => {
           </>
         )}
 
-        {/* Congratulations Modal */}
         <Modal
           open={showCongrats}
           onClose={closeCongratsModal}

@@ -85,17 +85,14 @@ router.get('/daily-expenses/:userId', async (req, res) => {
       return acc;
     }, {});
 
-    // Add subscription costs
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     subscriptions.forEach(sub => {
       let current = new Date(sub.startDate);
-      // Ensure we start checking from a reasonable point relative to the budget start
-      // But subscriptions are recurring, so we check every cycle that falls within [start, end]
+
 
       if (sub.cycle === 'Monthly') {
-        // Check each month in the budget range
         let temp = new Date(start);
         while (temp <= end) {
           const subDate = new Date(temp.getFullYear(), temp.getMonth(), new Date(sub.startDate).getDate());
@@ -160,7 +157,7 @@ router.get('/all/:user', async (req, res) => {
           let temp = new Date(start);
           while (temp <= end) {
             const subDate = new Date(temp.getFullYear(), temp.getMonth(), new Date(sub.startDate).getDate());
-            if (subDate >= start && subDate <= end && subDate <= today) {
+            if (subDate >= start && subDate <= end) {
               expenses.push({
                 _id: `sub-${sub._id}-${subDate.getTime()}`,
                 user: sub.user,
@@ -177,7 +174,7 @@ router.get('/all/:user', async (req, res) => {
         } else if (sub.cycle === 'Yearly') {
           const subStart = new Date(sub.startDate);
           const subDate = new Date(start.getFullYear(), subStart.getMonth(), subStart.getDate());
-          if (subDate >= start && subDate <= end && subDate <= today) {
+          if (subDate >= start && subDate <= end) {
             expenses.push({
               _id: `sub-${sub._id}-${subDate.getTime()}`,
               user: sub.user,
@@ -238,13 +235,13 @@ router.get('/category-percentage/:user', async (req, res) => {
           let temp = new Date(start);
           while (temp <= end) {
             const subDate = new Date(temp.getFullYear(), temp.getMonth(), new Date(sub.startDate).getDate());
-            if (subDate >= start && subDate <= end && subDate <= today) count++;
+            if (subDate >= start && subDate <= end) count++;
             temp.setMonth(temp.getMonth() + 1);
           }
         } else if (sub.cycle === 'Yearly') {
           const subStart = new Date(sub.startDate);
           const subDate = new Date(start.getFullYear(), subStart.getMonth(), subStart.getDate());
-          if (subDate >= start && subDate <= end && subDate <= today) count++;
+          if (subDate >= start && subDate <= end) count++;
         }
 
         if (count > 0) {

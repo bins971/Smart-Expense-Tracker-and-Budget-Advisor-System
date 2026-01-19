@@ -12,7 +12,7 @@ const BudgetForm = () => {
   const [totalAmount, setTotalAmount] = useState(null);
   const [startdate, setstartdate] = useState(null);
   const [enddate, setenddate] = useState(null);
-  const [budgetData, setBudgetData] = useState(null);  // Store budget data in state
+  const [budgetData, setBudgetData] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,15 +40,13 @@ const BudgetForm = () => {
           }
         }
 
-        // Store the fetched data in state
-        setBudgetData(response1.data);  // Store response in state
+        setBudgetData(response1.data);
 
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
     };
 
-    // Fetching the data when the component mounts or user.id changes
     fetchBudgetData();
   }, [user]);
 
@@ -66,7 +64,6 @@ const BudgetForm = () => {
         setError('User not found');
         return;
       }
-      // Check if the budget data is already fetched
       const url = budgetData ? `${API_URL}/budget/update/${userId}` : `${API_URL}/budget/create`;
       console.log("id")
 
@@ -90,7 +87,7 @@ const BudgetForm = () => {
 
       if (response.ok) {
         alert('Budget ' + (method === 'POST' ? 'created' : 'updated') + ' successfully!');
-        navigate('/home'); // Navigate to the home page after successful submit
+        navigate('/home');
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to set budget');

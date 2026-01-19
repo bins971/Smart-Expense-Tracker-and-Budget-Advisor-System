@@ -49,7 +49,6 @@ const StyledForm = () => {
       if (response.ok) {
         alert(result.message);
 
-        // Navigate to a new page with the added expense details
         navigate("/home", { state: { expense: result.expense } });
       } else {
         alert(result.error || "Failed to add expense.");

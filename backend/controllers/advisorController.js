@@ -1,7 +1,7 @@
 const Budget = require('../models/Budget');
 const Expense = require('../models/Expense');
 const Goal = require('../models/Goal');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Groq = require('groq-sdk');
 const connectDB = require('../config/db');
 
 exports.getAdvice = async (req, res) => {
@@ -9,130 +9,114 @@ exports.getAdvice = async (req, res) => {
     try {
         const { userId } = req.body;
 
-        if (!process.env.GEMINI_API_KEY) {
-            console.error('GEMINI_API_KEY is missing in .env');
-            return res.status(500).json({ message: 'AI configuration error: Missing API Key' });
+        if (!process.env.GROQ_API_KEY) {
+            return res.status(500).json({ message: 'AI configuration error: Missing Groq API Key' });
         }
-
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Switching to gemini-pro as 1.5-flash was returning 404s
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         if (!userId) {
             return res.status(400).json({ message: 'User ID is required' });
         }
 
+        const groq = new Groq({
+            apiKey: process.env.GROQ_API_KEY
+        });
+
         // Fetch User's Budget
         const budget = await Budget.findOne({ user: userId });
-
-        // Fetch User's Expenses
         const expenses = await Expense.find({ user: userId });
-
-        // Fetch User's Goals
         const goals = await Goal.find({ user: userId });
+        const Subscription = require('../models/Subscription');
+        const subscriptions = await Subscription.find({ user: userId });
 
         if (!budget) {
             return res.status(200).json({
-                advice: "It looks like you haven't set a budget yet. Setting a budget is the first step to financial freedom! Go to the Budget section to get started."
+                advice: "### Welcome to your Financial Intelligence! \n\nIt looks like you haven't set a budget yet. To unlock deep insights, please set your budget first."
             });
         }
 
-        const totalBudget = budget.totalAmount;
+        const totalBudget = budget.totalAmount || 1;
         const currentBalance = budget.currentAmount;
-        const totalExpenses = totalBudget - currentBalance;
-        const burnRate = ((totalExpenses / totalBudget) * 100).toFixed(2);
+        const totalSpent = Math.max(0, totalBudget - currentBalance);
+        const burnRate = ((totalSpent / totalBudget) * 100).toFixed(1);
 
-        // Fetch Subscriptions
-        const Subscription = require('../models/Subscription');
-        const subscriptions = await Subscription.find({ user: userId });
-        const monthlySubTotal = subscriptions.reduce((acc, sub) => {
+        // Advanced Category Breakdown
+        const categoryMap = {};
+        expenses.forEach(e => {
+            categoryMap[e.category] = (categoryMap[e.category] || 0) + e.amount;
+        });
+        const topCategories = Object.entries(categoryMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([cat, amt]) => `${cat}: ₱${amt.toLocaleString()}`)
+            .join(', ');
+
+        // Subscription Impact
+        const monthlySubs = subscriptions.reduce((acc, sub) => {
             return acc + (sub.cycle === 'Monthly' ? sub.amount : sub.amount / 12);
         }, 0);
 
-        // Category Analysis
-        const expenseByCategory = {};
-        expenses.forEach(exp => {
-            if (expenseByCategory[exp.category]) {
-                expenseByCategory[exp.category] += exp.amount;
-            } else {
-                expenseByCategory[exp.category] = exp.amount;
-            }
-        });
-
-        const sortedCategories = Object.entries(expenseByCategory)
-            .sort((a, b) => b[1] - a[1])
-            .map(([cat, amt]) => `${cat}: ₱${amt}`)
-            .join(', ');
-
-        // Daily Trend Analysis (Simulates Line Chart Data)
-        const expensesByDate = {};
-        expenses.forEach(exp => {
-            const dateStr = new Date(exp.date).toISOString().split('T')[0];
-            expensesByDate[dateStr] = (expensesByDate[dateStr] || 0) + exp.amount;
-        });
-
-        // Get last 7 active days
-        const sortedDates = Object.keys(expensesByDate).sort();
-        const last7Days = sortedDates.slice(-7).map(date => `${date}: ₱${expensesByDate[date]}`).join(' | ');
-
-        // Goal Analysis
+        // Goal Status
         const goalSummary = goals.length > 0
-            ? goals.map(g => {
-                const percent = Math.round((g.saved / g.amount) * 100);
-                return `${g.name} (${percent}% complete, ₱${g.remainingToSave} left)`;
-            }).join('; ')
+            ? goals.map(g => `${g.name} (${Math.round((g.saved / g.amount) * 100)}%)`).join(' | ')
             : "No active goals";
 
-        const prompt = `
-            You are a helpful and professional AI Financial Advisor. 
-            A user has a budget of ₱${totalBudget} and has already spent ₱${totalExpenses}, leaving them with ₱${currentBalance}.
-            Their spending burn rate is ${burnRate}%.
-            Their spending breakdown by category is: ${sortedCategories || 'No expenses yet'}.
-            
-            Their financial goals status: ${goalSummary}.
-            Their recent daily spending trend (last 7 active days): ${last7Days || 'No recent activity'}.
-            Their active subscriptions total ₱${monthlySubTotal} per month.
+        const prompt = `You are "AI Financial Intelligence", a world-class financial analyst. 
+Analyze this user's data and provide a "Wealth Intelligence Report".
 
-            Based on this data, provide concise, encouraging, and actionable financial advice in 4-6 sentences. 
-            Specific instructions:
-            1. Analyze their spending vs. budget. If burn rate > 75%, be firm.
-            2. Analyze their SPENDING TREND: Are they spending consistently or are there huge spikes? Mention this.
-            3. Reference their specific goals.
-            4. If they have NO goals, suggest essential ones.
-            5. Be specific and personalized.
-            
-            Format the response in plain text.
-        `;
+USER PROFILE:
+- Budget: ₱${totalBudget.toLocaleString()}
+- Available: ₱${currentBalance.toLocaleString()}
+- Burn Rate: ${burnRate}%
+- Top Categories: ${topCategories || 'No spending yet'}
+- Fixed Subscriptions: ₱${monthlySubs.toLocaleString()}/mo
+- Goal Progress: ${goalSummary}
 
-        // List of models to try in order of preference (Updated for 2026 availability)
-        const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash", "gemini-pro"];
-        let advice = null;
-        let lastError = null;
+STRUCTURE YOUR RESPONSE AS:
+### 📊 Executive Summary
+(One high-impact paragraph analyzing the current balance vs. time elapsed in the budget period. Be sharp and professional.)
 
-        for (const modelName of modelsToTry) {
-            try {
-                console.log(`Attempting to generate advice with model: ${modelName}`);
-                const model = genAI.getGenerativeModel({ model: modelName });
-                const result = await model.generateContent(prompt);
-                advice = result.response.text();
-                if (advice) break; // Success
-            } catch (e) {
-                console.warn(`Failed with model ${modelName}:`, e.message);
-                lastError = e;
-            }
-        }
+### 🔍 Spending Pattern Analysis
+(Identify "leaks" or spikes. Highlight the impact of top categories on the overall wealth trajectory.)
 
-        if (!advice) {
-            throw lastError || new Error("Failed to generate advice with all available models.");
-        }
+### 🚀 Wealth-Building Power Moves
+- **Move 1**: (Specific tactical advice based on goals or category spent)
+- **Move 2**: (Optimization tip for subscriptions or daily spending habit)
+- **Move 3**: (Strategic long-term mindset shift or goal adjustment)
+
+### 🔮 Predictive Forecast
+(Forecast where they will be by end-of-period if current behavior continues. Use bold numbers.)
+
+FORMATTING:
+- Use professional, data-driven Markdown.
+- Focus on "Empowerment" through data, not just criticism.
+- Ensure headers are clear (###).`;
+
+        console.log('[AI Advisor] Requesting insights from Groq...');
+
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a professional financial analyst providing wealth intelligence reports."
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
+        });
+
+        const advice = completion.choices[0].message.content;
+        console.log('[AI Advisor] ✓ Successfully generated insights');
 
         res.json({ advice });
 
     } catch (error) {
-        console.error('Error generating advice:', error);
-        // Provide more context if it's a Gemini error
-        const errorMessage = error.message || 'Server error generating advice';
-        res.status(500).json({ message: errorMessage });
+        console.error('Advisor Error:', error);
+        res.status(500).json({ message: error.message || 'Intelligence engine failed.' });
     }
 };
 
@@ -148,28 +132,25 @@ exports.getForecast = async (req, res) => {
             return res.status(200).json({ predictedAmount: 0, trend: 'neutral', message: 'Not enough data' });
         }
 
-        // Calculate Average Daily Spend
         const firstDate = new Date(expenses[0].date);
-        const lastDate = new Date(); // Today
+        const lastDate = new Date();
         const daysDiff = Math.max(1, Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24)));
 
         const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
         const avgDaily = totalSpent / daysDiff;
 
-        // Fetch Subscriptions for the user
         const Subscription = require('../models/Subscription');
         const subscriptions = await Subscription.find({ user: userId });
         const monthlySubTotal = subscriptions.reduce((acc, sub) => {
             return acc + (sub.cycle === 'Monthly' ? sub.amount : sub.amount / 12);
         }, 0);
 
-        // Predict next 30 days: (Average daily spending * 30) + Monthly subscription costs
         const predictedAmount = (avgDaily * 30) + monthlySubTotal;
 
         let trend = 'neutral';
         if (budget) {
-            if (predictedAmount > budget.totalAmount) trend = 'up'; // Danger
-            else if (predictedAmount < budget.totalAmount * 0.8) trend = 'down'; // Saving
+            if (predictedAmount > budget.totalAmount) trend = 'up';
+            else if (predictedAmount < budget.totalAmount * 0.8) trend = 'down';
         }
 
         res.status(200).json({

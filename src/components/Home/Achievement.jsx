@@ -75,7 +75,6 @@ const Achievement = () => {
                 </Box>
 
                 <Grid container spacing={4}>
-                  {/* Priority: History Achievements (Budget Medals) */}
                   {historyAchievements.map((ach, index) => (
                     <Grid item xs={12} sm={6} md={4} key={`hist-${index}`}>
                       <Paper
@@ -111,7 +110,6 @@ const Achievement = () => {
                     </Grid>
                   ))}
 
-                  {/* Secondary: Accomplished Goals (at the bottom) */}
                   {goals.map((goal) => (
                     <Grid item xs={12} sm={6} md={4} key={goal._id}>
                       <Paper

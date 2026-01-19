@@ -95,19 +95,16 @@ const UserSignUp = () => {
   return (
     <div className={styles.signupPage}>
       <div className={styles.signupCard}>
-        {/* Left Section */}
         <div className={styles.signupLeft}>
           <h2>Welcome!</h2>
           <p>Join us and explore amazing opportunities.</p>
           <img src={signup} alt="Sign-Up" style={{ maxWidth: '300px', marginBottom: '20px' }} />
         </div>
 
-        {/* Right Section */}
         <div className={styles.signupRight}>
           <h2>Create Account</h2>
           <form onSubmit={handleSignUp}>
             <div className={styles.formGrid}>
-              {/* Username */}
               <div>
                 <label htmlFor="username">Username</label>
                 <input
@@ -122,7 +119,6 @@ const UserSignUp = () => {
                 )}
               </div>
 
-              {/* Email */}
               <div>
                 <label htmlFor="email">Email</label>
                 <input
@@ -137,7 +133,6 @@ const UserSignUp = () => {
                 )}
               </div>
 
-              {/* Password */}
               <div>
                 <label htmlFor="password">Password</label>
                 <input
@@ -152,7 +147,6 @@ const UserSignUp = () => {
                 )}
               </div>
 
-              {/* Age */}
               <div>
                 <label htmlFor="age">Age</label>
                 <input
@@ -167,7 +161,6 @@ const UserSignUp = () => {
                 )}
               </div>
 
-              {/* Date of Birth */}
               <div>
                 <label htmlFor="dob">Date of Birth</label>
                 <input
@@ -179,7 +172,6 @@ const UserSignUp = () => {
                 />
               </div>
 
-              {/* Gender */}
               <div>
                 <label htmlFor="gender">Gender</label>
                 <select
@@ -198,7 +190,6 @@ const UserSignUp = () => {
                 )}
               </div>
 
-              {/* Working Status */}
               <div>
                 <label htmlFor="workingStatus">Working Status</label>
                 <select

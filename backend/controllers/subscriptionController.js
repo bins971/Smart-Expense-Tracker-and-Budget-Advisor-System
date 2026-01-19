@@ -7,13 +7,22 @@ exports.addSubscription = async (req, res) => {
     const { user, name, amount, cycle, startDate } = req.body;
 
     try {
+        const start = startDate ? new Date(startDate) : new Date();
+        const nextDate = new Date(start);
+        if (cycle === 'Monthly') {
+            nextDate.setMonth(nextDate.getMonth() + 1);
+        } else if (cycle === 'Yearly') {
+            nextDate.setFullYear(nextDate.getFullYear() + 1);
+        }
+
         const newSubscription = new Subscription({
             user,
             name,
             amount,
             cycle,
             category: req.body.category || 'Subscription',
-            startDate
+            startDate: start,
+            nextPaymentDate: nextDate
         });
 
         const savedSubscription = await newSubscription.save();

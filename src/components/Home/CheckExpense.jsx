@@ -74,7 +74,6 @@ export default function CheckExpense() {
       <div className={styles.dailyexpense}>
         <h1>Expenses</h1>
 
-        {/* Toggle Buttons for View Mode */}
         <div className={styles.togbtn}>
           <div>
             <button
@@ -86,7 +85,6 @@ export default function CheckExpense() {
               onClick={() => toggleViewMode("monthly")}>Monthly</button></div>
         </div>
 
-        {/* Date Picker */}
         <div>
           <DatePicker
             selected={selectedDate}
@@ -97,7 +95,6 @@ export default function CheckExpense() {
           />
         </div>
 
-        {/* Display Total Amount */}
         <div>
           <h3>Total Amount: ₱{calculateTotalAmount().toFixed(2)}</h3>
         </div>

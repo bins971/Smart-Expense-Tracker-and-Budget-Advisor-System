@@ -81,7 +81,6 @@ function Page() {
 
             <Container maxWidth="xl" sx={{ padding: '0 !important', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-                {/* Hero Section */}
                 <Box sx={{
                     textAlign: 'center',
                     padding: '80px 20px 40px',
@@ -107,14 +106,13 @@ function Page() {
                     </Typography>
                 </Box>
 
-                {/* Images Container */}
                 <Box sx={{
                     width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: { xs: '30px', md: '50px' }, // Responsive gap
-                    padding: { xs: '0 10px', md: '0' } // Padding for small screens
+                    gap: { xs: '30px', md: '50px' },
+                    padding: { xs: '0 10px', md: '0' }
                 }}>
                     <img src={Home2} alt="Dashboard Preview" className={styles.imagefullscreen} style={{ width: '100%', maxWidth: '1400px', height: 'auto', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
                     <img src={Home3} alt="Features" className={styles.imagefullscreen} style={{ width: '100%', maxWidth: '1400px', height: 'auto', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
@@ -122,7 +120,6 @@ function Page() {
                     <img src={Home5} alt="Mobile View" className={styles.imagefullscreen} style={{ width: '100%', maxWidth: '1400px', height: 'auto', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
                 </Box>
 
-                {/* Footer Tagline */}
                 <Box sx={{
                     padding: '60px 20px',
                     textAlign: 'center',
@@ -134,7 +131,7 @@ function Page() {
                     <Typography variant="h4" sx={{
                         fontFamily: 'Poppins',
                         fontWeight: 700,
-                        color: '#FF7F50', // Coral/Orange color
+                        color: '#FF7F50',
                         fontStyle: 'italic'
                     }}>
                         Take control of your finances today. Small steps lead to big savings tomorrow!

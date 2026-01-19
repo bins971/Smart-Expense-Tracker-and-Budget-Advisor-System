@@ -31,7 +31,6 @@ const NewGoal = () => {
     e.preventDefault();
     setError("");
 
-    // Frontend validation
     const amount = parseFloat(goalData.amount);
     const saved = parseFloat(goalData.saved || 0);
     const startDate = new Date(goalData.startDate);
@@ -73,9 +72,8 @@ const NewGoal = () => {
     }
 
     try {
-      // Include the logged-in user's email
       const goal = {
-        email: user.email, // Use the email from AuthContext
+        email: user.email, 
         name: goalData.name,
         amount: amount,
         saved: saved,

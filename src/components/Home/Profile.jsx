@@ -42,7 +42,6 @@ const Profile = () => {
         const data = await response.json();
         console.log("all")
         console.log(data.username)
-        // ... (inside fetchUserData)
         if (response.ok) {
           setUser({
             username: data.username || '',
@@ -53,7 +52,6 @@ const Profile = () => {
             workingStatus: data.workingStatus || '',
           });
 
-          // Auto-enable edit mode if critical fields are empty
           if (!data.username || !data.age) {
             setEditMode(true);
           }
@@ -124,7 +122,6 @@ const Profile = () => {
       </div>
       <div style={styles.profileContainer}>
         <div style={styles.gridContainer}>
-          {/* Left Column */}
           <div style={styles.fieldContainer}>
             <label>Name:</label>
             <input
@@ -159,7 +156,6 @@ const Profile = () => {
             />
           </div>
 
-          {/* Right Column */}
           <div style={styles.fieldContainer}>
             <label>Gender:</label>
             <select
@@ -222,7 +218,7 @@ const styles = {
   container: {
     width: '90%',
     maxWidth: '1000px',
-    margin: '40px auto 80px auto', // Added bottom margin to avoid cut-off
+    margin: '40px auto 80px auto',
     padding: '40px',
     background: 'var(--glass-bg)',
     backdropFilter: 'blur(20px)',
@@ -238,7 +234,7 @@ const styles = {
     textAlign: 'center',
     marginBottom: '40px',
     boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.4)',
-    position: 'relative', // Added for absolute positioning of back button
+    position: 'relative',
   },
   headerText: {
     margin: 0,

@@ -51,10 +51,9 @@ const Login = () => {
         setIsLoggedIn(true);
 
         setTimeout(() => {
-          navigate("/"); // Redirect after successful login
+          navigate("/");
         }, 2000);
       } else {
-        // Handle different error scenarios
         if (data.errors) {
           setMessage(data.errors[0] || "Login failed. Please try again.");
         } else {
@@ -65,16 +64,16 @@ const Login = () => {
       setMessage("An error occurred while logging in. Please try again later.");
       console.error("Login error:", error);
     } finally {
-      setLoading(false); // Stop loading after the request completes
+      setLoading(false);
     }
   };
 
   return (
-    <div className={styles.loginPage}> {/* Use CSS module styles */}
-      <div className={styles.loginBox}> {/* Use CSS module styles */}
+    <div className={styles.loginPage}>
+      <div className={styles.loginBox}>
         <h2>Sign In</h2>
         <form onSubmit={handleLogin}>
-          <div className={styles.inputGroup}> {/* Use CSS module styles */}
+          <div className={styles.inputGroup}>
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -84,7 +83,7 @@ const Login = () => {
               required
             />
           </div>
-          <div className={styles.inputGroup}> {/* Use CSS module styles */}
+          <div className={styles.inputGroup}>
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -95,7 +94,7 @@ const Login = () => {
             />
           </div>
           <button type="submit" className={styles.loginButton} disabled={loading}>
-            {loading ? "Signing In..." : "Sign In"} {/* Show loading text */}
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 

@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState } from "react";
 
-const AuthContext = createContext(); // Create context
+const AuthContext = createContext(); 
 
 export const useAuth = () => {
-  return useContext(AuthContext); // Hook to use AuthContext
+  return useContext(AuthContext); 
 };
 
 export const AuthProvider = ({ children }) => {

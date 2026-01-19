@@ -40,7 +40,6 @@ const Dashboard = () => {
   const [newExpense, setNewExpense] = useState({ name: '', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
   const [smartProgress, setSmartProgress] = useState({ value: 0, color: 'primary', message: '' });
 
-  // Goals State
   const [goals, setGoals] = useState([]);
   const [openGoalModal, setOpenGoalModal] = useState(false);
 
@@ -53,14 +52,6 @@ const Dashboard = () => {
     return "Friend";
   };
 
-  // const getGreeting = () => {
-  //   const hour = new Date().getHours();
-  //   if (hour < 12) return "Good Morning";
-  //   if (hour < 18) return "Good Afternoon";
-  //   return "Good Evening";
-  // };
-
-  // const quote = "Do not save what is left after spending, but spend what is left after saving.";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,7 +97,6 @@ const Dashboard = () => {
         const sorted = expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
         setRecentTransactions(sorted);
 
-        // Fetch Goals
         const userEmail = user?.email;
         if (userEmail) {
           try {
@@ -118,7 +108,6 @@ const Dashboard = () => {
           }
         }
 
-        // Smart Progress Logic
         if (bTotal > 0) {
           const spent = bTotal - bCurrent;
           const budgetPercent = (spent / bTotal) * 100;
@@ -157,7 +146,7 @@ const Dashboard = () => {
         {
           label: 'Daily Expenses',
           data: dailyExpenses.map((item) => item.totalAmount),
-          borderColor: '#4F46E5', // Indigo
+          borderColor: '#4F46E5',
           backgroundColor: (context) => {
             const ctx = context.chart.ctx;
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -179,25 +168,6 @@ const Dashboard = () => {
     setLineData(newLineData);
   }, [dailyExpenses]);
 
-  // const data = {
-  //   labels: categoryPercentages.map((item) => item.category),
-  //   datasets: [
-  //     {
-  //       data: categoryPercentages.map((item) => item.percentage),
-  //       backgroundColor: [
-  //         'rgba(79, 70, 229, 0.8)',   // Indigo
-  //         'rgba(16, 185, 129, 0.8)',  // Emerald
-  //         'rgba(244, 63, 94, 0.8)',   // Rose
-  //         'rgba(245, 158, 11, 0.8)',  // Amber
-  //         'rgba(59, 130, 246, 0.8)',  // Blue
-  //         'rgba(139, 92, 246, 0.8)'   // Violet
-  //       ],
-  //       borderColor: '#ffffff',
-  //       borderWidth: 2,
-  //       hoverOffset: 10
-  //     },
-  //   ],
-  // };
 
   const lineOptions = {
     responsive: true,
@@ -260,7 +230,6 @@ const Dashboard = () => {
             </Box>
           ) : (
             <Grid container spacing={4} justifyContent="center">
-              {/* Dashboard Primary Actions & Greeting */}
               <Grid item xs={12} className={styles.greetingAnim}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={6} sx={{ borderBottom: '1px solid rgba(79, 70, 229, 0.1)', pb: 4 }}>
                   <Box>
@@ -401,7 +370,6 @@ const Dashboard = () => {
                 </Card>
               </Grid>
 
-              {/* Analytical Row: Forecast, Category Breakdown, Subscriptions */}
               <Grid item xs={12} md={4} className={`${styles.fadeInUp} ${styles.delay1}`}>
                 <ForecastWidget />
               </Grid>
@@ -457,14 +425,12 @@ const Dashboard = () => {
                 </Card>
               </Grid>
 
-              {/* Transactions Table - Moved beside Spending Trend */}
               <Grid item xs={12} md={5} className={`${styles.fadeInUp} ${styles.delay4}`} id="recent-transactions">
                 <Card sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.5)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)', height: '100%' }} className={styles.glassCard}>
                   <Box p={3} display="flex" justifyContent="space-between" alignItems="center" bgcolor="rgba(255,255,255,0.9)">
                     <Typography variant="h6" fontWeight="bold" sx={{ fontFamily: 'Poppins' }}>Recent Transactions</Typography>
                   </Box>
 
-                  {/* Search Bar */}
                   <Box px={3} pb={2}>
                     <TextField
                       fullWidth
@@ -479,32 +445,61 @@ const Dashboard = () => {
                     />
                   </Box>
 
-                  <TableContainer component={Paper} elevation={0} sx={{ maxHeight: 220 }}>
+                  <TableContainer component={Paper} elevation={0} sx={{ maxHeight: 300, bgcolor: 'transparent' }}>
                     <Table stickyHeader size="small">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem' }}>Name</TableCell>
-                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem' }}>Amount</TableCell>
-                          <TableCell align="right" sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem' }}>Action</TableCell>
+                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'rgba(255,255,255,0.9)' }}>Name</TableCell>
+                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'rgba(255,255,255,0.9)' }}>Amount</TableCell>
+                          <TableCell align="right" sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'rgba(255,255,255,0.9)' }}>Action</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {recentTransactions
                           .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                          .slice(0, 5)
+                          .slice(0, 6)
                           .map((row) => (
-                            <TableRow key={row._id} sx={{ '&:hover': { bgcolor: '#F9FAFB' } }}>
-                              <TableCell sx={{ fontFamily: 'Poppins', fontSize: '0.8rem' }}>{row.name}</TableCell>
-                              <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.8rem' }}>₱{row.amount.toLocaleString()}</TableCell>
+                            <TableRow key={row._id} sx={{
+                              '&:hover': { bgcolor: 'rgba(79, 70, 229, 0.05)' },
+                              transition: 'background-color 0.2s',
+                              borderLeft: row.isSubscription ? '4px solid #10B981' : 'none'
+                            }}>
+                              <TableCell sx={{ fontFamily: 'Poppins', fontSize: '0.8rem' }}>
+                                <Box display="flex" flexDirection="column">
+                                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{row.name}</Typography>
+                                  {row.isSubscription && (
+                                    <Typography variant="caption" sx={{ color: '#10B981', fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase' }}>
+                                      Subscription
+                                    </Typography>
+                                  )}
+                                </Box>
+                              </TableCell>
+                              <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 700, fontSize: '0.8rem', color: row.isSubscription ? '#059669' : '#1E1B4B' }}>
+                                ₱{row.amount.toLocaleString()}
+                              </TableCell>
                               <TableCell align="right">
-                                <IconButton size="small" sx={{ color: '#EF4444' }} onClick={async () => {
-                                  if (window.confirm('Delete?')) {
-                                    await axios.delete(`${API_URL}/expense/delete/${row._id}`);
-                                    window.location.reload();
-                                  }
-                                }}>
-                                  <DeleteIcon fontSize="inherit" />
-                                </IconButton>
+                                {row.isSubscription ? (
+                                  <MuiTooltip title="Subscriptions are managed in the billing section">
+                                    <span>
+                                      <IconButton size="small" disabled sx={{ color: '#9CA3AF' }}>
+                                        <HistoryIcon fontSize="inherit" />
+                                      </IconButton>
+                                    </span>
+                                  </MuiTooltip>
+                                ) : (
+                                  <IconButton size="small" sx={{ color: '#EF4444', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' } }} onClick={async () => {
+                                    if (window.confirm('Are you sure you want to delete this expense?')) {
+                                      try {
+                                        await axios.delete(`${API_URL}/expense/delete/${row._id}`);
+                                        window.location.reload();
+                                      } catch (e) {
+                                        alert("Failed to delete expense");
+                                      }
+                                    }
+                                  }}>
+                                    <DeleteIcon fontSize="inherit" />
+                                  </IconButton>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -512,13 +507,23 @@ const Dashboard = () => {
                     </Table>
                   </TableContainer>
                   <Box p={2} textAlign="center">
-                    <Button size="small" onClick={() => navigate('/api/expense/all/' + (user.id || user._id))} sx={{ textTransform: 'none', fontSize: '0.75rem' }}>View All</Button>
+                    <Button
+                      size="small"
+                      onClick={() => navigate('/api/expense/all/' + (user.id || user._id))}
+                      sx={{
+                        textTransform: 'none',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: '#4F46E5',
+                        '&:hover': { bgcolor: 'rgba(79, 70, 229, 0.05)' }
+                      }}
+                    >
+                      View Detailed Reports
+                    </Button>
                   </Box>
                 </Card>
               </Grid>
 
-
-              {/* Goals Widget - Moved to Bottom for visibility */}
               <Grid item xs={12} className={styles.fadeInUp}>
                 <Card sx={{ ...chartCardStyle, p: 4, bgcolor: '#ffffff' }} className={styles.glassCard}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
@@ -612,7 +617,6 @@ const Dashboard = () => {
                 </Card>
               </Grid>
 
-              {/* Add Expense Footer - As requested by user */}
               <Grid item xs={12} sx={{ mt: 6, mb: 8 }}>
                 <Box display="flex" justifyContent="center">
                   <Button
@@ -647,7 +651,6 @@ const Dashboard = () => {
         </Container>
       </div>
 
-      {/* Quick Add FAB */}
       <Box sx={{ position: 'fixed', bottom: 40, right: 40, zIndex: 2000 }}>
         <MuiTooltip title="Quick Add Expense" placement="left">
           <Fab
@@ -666,7 +669,6 @@ const Dashboard = () => {
         </MuiTooltip>
       </Box >
 
-      {/* Add Expense Dialog */}
       <Dialog
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
