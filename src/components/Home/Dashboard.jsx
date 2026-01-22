@@ -7,10 +7,6 @@ import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   Fab, LinearProgress, IconButton, Tooltip as MuiTooltip, CircularProgress
 } from '@mui/material';
-import { Line } from 'react-chartjs-2';
-import 'chart.js/auto';
-import Subscriptions from './Subscriptions';
-import ForecastWidget from './ForecastWidget';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler } from 'chart.js';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -35,7 +31,7 @@ const Dashboard = () => {
   const { user } = useContext(AuthContext);
   const [categoryPercentages, setCategoryPercentages] = useState([]);
   const [dailyExpenses, setDailyExpenses] = useState([]);
-  const [lineDataa, setLineData] = useState({});
+
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -139,68 +135,10 @@ const Dashboard = () => {
     fetchData();
   }, [user]);
 
-  useEffect(() => {
-    const newLineData = {
-      labels: dailyExpenses.map((item) => item._id),
-      datasets: [
-        {
-          label: 'Daily Expenses',
-          data: dailyExpenses.map((item) => item.totalAmount),
-          borderColor: '#818cf8',
-          backgroundColor: (context) => {
-            const ctx = context.chart.ctx;
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(129, 140, 248, 0.3)');
-            gradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
-            return gradient;
-          },
-          borderWidth: 3,
-          pointBackgroundColor: '#818cf8',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          fill: true,
-          tension: 0.4,
-        },
-      ],
-    };
-    setLineData(newLineData);
-  }, [dailyExpenses]);
 
 
-  const lineOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      title: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleColor: '#ffffff',
-        bodyColor: '#cbd5e1',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 12,
-        displayColors: false,
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { family: 'Poppins', size: 10 } }
-      },
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.05)', borderDash: [5, 5] },
-        ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { family: 'Poppins', size: 10 } }
-      },
-    },
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
-  };
+
+
 
   const chartCardStyle = {
     padding: '24px',

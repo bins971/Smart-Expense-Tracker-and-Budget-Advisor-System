@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Container, Button, AppBar, Toolbar, Box, Typography, Grid } from '@mui/material';
-import Divider from '@mui/material/Divider';
 import { Link } from "react-router-dom";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 import SecurityIcon from '@mui/icons-material/Security';
 import MemoryIcon from '@mui/icons-material/Memory';
 import InsightsIcon from '@mui/icons-material/Insights';
@@ -14,7 +13,7 @@ import GppGoodIcon from '@mui/icons-material/GppGood';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import styles from '../styles/home.module.css';
+
 import { BLOG_POSTS } from '../data/blogData';
 
 const FEATURES = [
