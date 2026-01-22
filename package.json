@@ -40,7 +40,8 @@
     "dev": "react-scripts start",
     "client": "react-scripts start",
     "build": "CI=false react-scripts build",
-    "test": "react-scripts test",
+    "start-server": "node backend/server.js",
+    "heroku-postbuild": "npm run build",
     "eject": "react-scripts eject",
     "server": "node backend/server.js",
     "postinstall": "npm install --prefix backend"
