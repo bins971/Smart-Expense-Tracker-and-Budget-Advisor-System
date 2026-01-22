@@ -7,6 +7,8 @@ import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   Fab, LinearProgress, IconButton, Tooltip as MuiTooltip, CircularProgress
 } from '@mui/material';
+import Subscriptions from './Subscriptions';
+import ForecastWidget from './ForecastWidget';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler } from 'chart.js';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
