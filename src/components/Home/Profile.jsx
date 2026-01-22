@@ -6,6 +6,8 @@ import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Box, Typography } from '@mui/material';
 
+import TwoFactorSetup from './TwoFactorSetup';
+
 const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const [edituser, setUser] = useState({
@@ -217,29 +219,90 @@ const Profile = () => {
               <Typography variant="h6" fontWeight="900" sx={{ color: '#ffffff', fontFamily: 'Poppins', mb: 0.5 }}>Vault Security (2FA)</Typography>
               <Typography variant="body2" sx={{ color: '#94a3b8' }}>Architect defensive perimeters around your financial destiny.</Typography>
             </Box>
-            <div
-              onClick={() => editMode && setUser({ ...edituser, mfaEnabled: !edituser.mfaEnabled })}
-              style={{
-                width: '60px',
-                height: '32px',
-                borderRadius: '20px',
-                background: edituser.mfaEnabled ? '#6366f1' : 'rgba(255,255,255,0.1)',
-                padding: '4px',
-                cursor: editMode ? 'pointer' : 'not-allowed',
-                transition: '0.4s cubic-bezier(0.19, 1, 0.22, 1)',
-                position: 'relative'
-              }}
-            >
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: '#ffffff',
-                transform: edituser.mfaEnabled ? 'translateX(28px)' : 'translateX(0)',
-                transition: '0.4s cubic-bezier(0.19, 1, 0.22, 1)',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-              }}></div>
-            </div>
+            <TwoFactorSetup />
+          </Box>
+
+          {/* Business Mode Link */}
+          <Box sx={{
+            mt: 4,
+            p: 3,
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)',
+            border: '1px solid rgba(129, 140, 248, 0.2)',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.3)'
+            }
+          }}
+            onClick={() => {
+              // Show loading animation
+              const loadingDiv = document.createElement('div');
+              loadingDiv.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(15, 23, 42, 0.95);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              z-index: 9999;
+              backdrop-filter: blur(10px);
+            `;
+              loadingDiv.innerHTML = `
+              <div style="text-align: center;">
+                <div style="
+                  width: 60px;
+                  height: 60px;
+                  border: 4px solid rgba(129, 140, 248, 0.2);
+                  border-top-color: #818cf8;
+                  border-radius: 50%;
+                  animation: spin 0.8s linear infinite;
+                  margin: 0 auto 20px;
+                "></div>
+                <p style="color: #ffffff; font-family: Poppins; font-size: 1.2rem;">Loading Business Dashboard...</p>
+              </div>
+              <style>
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              </style>
+            `;
+              document.body.appendChild(loadingDiv);
+
+              // Redirect after animation
+              setTimeout(() => {
+                navigate('/business');
+              }, 800);
+            }}
+          >
+            <Box display="flex" alignItems="center" gap={2}>
+              <Box sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem'
+              }}>
+                💼
+              </Box>
+              <Box flex={1}>
+                <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 700, mb: 0.5 }}>
+                  Business Mode
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                  Track revenue, ROI, profit & loss, and business metrics
+                </Typography>
+              </Box>
+              <Typography sx={{ color: '#818cf8', fontSize: '1.5rem' }}>→</Typography>
+            </Box>
           </Box>
         </div>
 

@@ -8,6 +8,12 @@ const goalRoutes = require("./routes/goal");
 const ExpenseRoutes = require("./routes/expense");
 const advisorRoutes = require("./routes/advisor");
 const subscriptionRoutes = require("./routes/subscription");
+const summaryController = require("./controllers/summaryController");
+const businessAnalyticsController = require("./controllers/businessAnalyticsController");
+const revenueRoutes = require("./routes/revenue");
+const businessExpenseRoutes = require("./routes/businessExpense");
+const projectRoutes = require("./routes/project");
+const clientRoutes = require("./routes/client");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -31,6 +37,19 @@ app.use("/api/expense", ExpenseRoutes);
 app.use("/api/goal", goalRoutes);
 app.use("/api/advisor", advisorRoutes);
 app.use("/api/subscription", subscriptionRoutes);
+app.get("/api/summary/:userId", summaryController.generateSummary);
+
+// Business Analytics Routes
+app.get("/api/business/metrics/:userId", businessAnalyticsController.getMetrics);
+app.get("/api/business/profit-loss/:userId", businessAnalyticsController.getProfitLoss);
+app.get("/api/business/roi/:userId", businessAnalyticsController.getROI);
+app.get("/api/business/cash-flow/:userId", businessAnalyticsController.getCashFlow);
+
+// Business Data Routes
+app.use("/api/revenue", revenueRoutes);
+app.use("/api/business-expense", businessExpenseRoutes);
+app.use("/api/project", projectRoutes);
+app.use("/api/client", clientRoutes);
 
 // Serve static assets (ALWAYS try to if build exists, regardless of NODE_ENV)
 const path = require("path");

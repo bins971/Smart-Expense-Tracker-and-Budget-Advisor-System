@@ -33,6 +33,7 @@
         "openai": "^6.16.0",
         "papaparse": "^5.4.1",
         "prisma": "^6.2.1",
+        "qrcode": "^1.5.4",
         "react": "^18.3.1",
         "react-bootstrap": "^2.10.5",
         "react-chartjs-2": "^5.2.0",
@@ -40,6 +41,7 @@
         "react-router-dom": "^6.26.2",
         "react-scripts": "5.0.1",
         "recharts": "^2.13.0",
+        "speakeasy": "^2.0.0",
         "web-vitals": "^2.1.4",
         "ws": "^8.19.0"
     },

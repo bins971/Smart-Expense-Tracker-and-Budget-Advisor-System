@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext.js";
 import axios from 'axios';
 import { API_URL } from "../../apiConfig";
 import { Box, Typography } from '@mui/material';
+import CustomAlert from '../CustomAlert';
 
 const BudgetForm = () => {
   const { user } = useContext(AuthContext);
@@ -14,6 +15,8 @@ const BudgetForm = () => {
   const [startdate, setstartdate] = useState(null);
   const [enddate, setenddate] = useState(null);
   const [budgetData, setBudgetData] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,8 +96,9 @@ const BudgetForm = () => {
       });
 
       if (response.ok) {
-        alert('Budget ' + (method === 'POST' ? 'created' : 'updated') + ' successfully!');
-        navigate('/home');
+        setAlertMessage('Budget ' + (method === 'POST' ? 'created' : 'updated') + ' successfully!');
+        setAlertOpen(true);
+        setTimeout(() => navigate('/home'), 1500);
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to set budget');
@@ -198,6 +202,12 @@ const BudgetForm = () => {
           </button>
         </form>
       </div>
+      <CustomAlert
+        open={alertOpen}
+        onClose={() => setAlertOpen(false)}
+        message={alertMessage}
+        type="success"
+      />
     </div>
   );
 };

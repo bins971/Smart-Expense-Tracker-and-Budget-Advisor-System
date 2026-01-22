@@ -18,6 +18,7 @@ import axios from 'axios';
 import { API_URL } from "../../apiConfig";
 import { AuthContext } from '../../context/AuthContext';
 import AddGoalModal from './AddGoalModal';
+import BudgetSummaryReport from './BudgetSummaryReport';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler);
 
@@ -45,6 +46,8 @@ const Dashboard = () => {
 
   const [goals, setGoals] = useState([]);
   const [openGoalModal, setOpenGoalModal] = useState(false);
+  const [budgetExpired, setBudgetExpired] = useState(false);
+  const [showSummaryReport, setShowSummaryReport] = useState(false);
 
   const getDisplayName = () => {
     if (user?.username) return user.username;
@@ -81,6 +84,14 @@ const Dashboard = () => {
           setCurrentAmount(bData.currentAmount);
           if (bData.startdate) setstartdate(new Date(bData.startdate).toISOString().split('T')[0]);
           if (bData.enddate) setenddate(new Date(bData.enddate).toISOString().split('T')[0]);
+
+          // Check if budget period has ended
+          const today = new Date();
+          const endDate = new Date(bData.enddate);
+          if (today > endDate) {
+            setBudgetExpired(true);
+            setShowSummaryReport(true);
+          }
         } else {
           console.log("No budget found or error fetching budget");
           setTotalAmount(0); setSavingsTarget(0); setSpendableBudget(0); setCurrentAmount(0);
@@ -499,7 +510,32 @@ const Dashboard = () => {
                                     if (window.confirm('Are you sure you want to delete this expense?')) {
                                       try {
                                         await axios.delete(`${API_URL}/expense/delete/${row.id || row._id}`);
-                                        window.location.reload();
+
+                                        // Refresh data instead of full page reload
+                                        const userId = user.id || user._id;
+                                        const [budgetRes, categoryRes, transactionsRes] = await Promise.allSettled([
+                                          axios.get(`${API_URL}/budget/fetch/${userId}`),
+                                          axios.get(`${API_URL}/expense/category-percentage/${userId}`),
+                                          axios.get(`${API_URL}/expense/all/${userId}`)
+                                        ]);
+
+                                        if (budgetRes.status === 'fulfilled') {
+                                          const bData = budgetRes.value.data;
+                                          setCurrentAmount(bData.currentAmount);
+                                          setTotalAmount(bData.totalAmount);
+                                          setSavingsTarget(bData.savingsTarget || 0);
+                                          setSpendableBudget(bData.spendableBudget || bData.totalAmount);
+                                        }
+
+                                        if (categoryRes.status === 'fulfilled') {
+                                          setCategoryPercentages(categoryRes.value.data?.categoryPercentages || []);
+                                        }
+
+                                        if (transactionsRes.status === 'fulfilled') {
+                                          const expenses = transactionsRes.value.data?.expenses || [];
+                                          const sorted = expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                                          setRecentTransactions(sorted);
+                                        }
                                       } catch (e) {
                                         alert("Failed to delete expense");
                                       }
@@ -738,7 +774,32 @@ const Dashboard = () => {
                   amount: Number(newExpense.amount)
                 });
                 setOpenAddModal(false);
-                window.location.reload();
+
+                // Refresh budget and expense data
+                const userId = user.id || user._id;
+                const [budgetRes, categoryRes, transactionsRes] = await Promise.allSettled([
+                  axios.get(`${API_URL}/budget/fetch/${userId}`),
+                  axios.get(`${API_URL}/expense/category-percentage/${userId}`),
+                  axios.get(`${API_URL}/expense/all/${userId}`)
+                ]);
+
+                if (budgetRes.status === 'fulfilled') {
+                  const bData = budgetRes.value.data;
+                  setCurrentAmount(bData.currentAmount);
+                  setTotalAmount(bData.totalAmount);
+                  setSavingsTarget(bData.savingsTarget || 0);
+                  setSpendableBudget(bData.spendableBudget || bData.totalAmount);
+                }
+
+                if (categoryRes.status === 'fulfilled') {
+                  setCategoryPercentages(categoryRes.value.data?.categoryPercentages || []);
+                }
+
+                if (transactionsRes.status === 'fulfilled') {
+                  const expenses = transactionsRes.value.data?.expenses || [];
+                  const sorted = expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                  setRecentTransactions(sorted);
+                }
               } catch (err) {
                 alert('Error adding expense');
               }
@@ -754,7 +815,21 @@ const Dashboard = () => {
       <AddGoalModal
         open={openGoalModal}
         onClose={() => setOpenGoalModal(false)}
-        onGoalAdded={() => window.location.reload()}
+        onGoalAdded={async () => {
+          setOpenGoalModal(false);
+          // Refresh goals data
+          const userEmail = user?.email;
+          if (userEmail) {
+            const goalsRes = await axios.get(`${API_URL}/goal/email/${userEmail}`);
+            setGoals(Array.isArray(goalsRes.data) ? goalsRes.data : []);
+          }
+        }}
+      />
+
+      <BudgetSummaryReport
+        open={showSummaryReport}
+        onClose={() => setShowSummaryReport(false)}
+        userId={user?.id || user?._id}
       />
     </>
   );

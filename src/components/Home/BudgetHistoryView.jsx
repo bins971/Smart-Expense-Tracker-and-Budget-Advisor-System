@@ -102,9 +102,10 @@ const BudgetHistoryView = () => {
         const fetchHistory = async () => {
             try {
                 const res = await axios.get(`${API_URL}/budget/history/${user.id}`);
-                setHistory(res.data);
+                setHistory(res.data.history || []);
             } catch (err) {
                 console.error("Error fetching history", err);
+                setHistory([]);
             } finally {
                 setLoading(false);
             }

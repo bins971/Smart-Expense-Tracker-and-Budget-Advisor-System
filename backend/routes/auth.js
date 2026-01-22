@@ -1,5 +1,5 @@
 const express = require('express');
-const { signup, login, getUserByEmail, getUserById, updateUser } = require('../controllers/authController');
+const { signup, login, getUserByEmail, getUserById, updateUser, generate2FA, verify2FA } = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -17,5 +17,9 @@ router.get('/by-profile/:id', getUserById);
 
 // Update User Route
 router.put('/update/:email', updateUser);
+
+// 2FA Routes
+router.post('/2fa/generate', generate2FA);
+router.post('/2fa/verify', verify2FA);
 
 module.exports = router;

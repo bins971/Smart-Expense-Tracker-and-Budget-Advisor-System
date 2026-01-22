@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/db');
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -73,6 +75,15 @@ exports.login = async (req, res) => {
             },
         };
 
+        // MFA Check
+        if (user.mfaEnabled) {
+            return res.status(200).json({
+                require2FA: true,
+                userId: user.id,
+                message: 'Two-factor authentication required'
+            });
+        }
+
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 
         res.status(200).json({
@@ -82,6 +93,7 @@ exports.login = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
+                mfaEnabled: user.mfaEnabled
             },
         });
     } catch (error) {
@@ -142,5 +154,92 @@ exports.updateUser = async (req, res) => {
         }
 
         res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+exports.generate2FA = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const secret = speakeasy.generateSecret({ length: 20 });
+
+        // Save temporary secret to DB or just return it? 
+        // For security, usually we don't save it until verified, but for simplicity we can update it now 
+        // OR better: Frontend sends it back for verification. 
+        // Let's update it in DB but keep mfaEnabled false until verified.
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { twoFactorSecret: secret.base32 }
+        });
+
+        const otpauth_url = speakeasy.otpauthURL({
+            secret: secret.ascii,
+            label: `ModernFinance:${user.email}`,
+            issuer: 'ModernFinance'
+        });
+
+        qrcode.toDataURL(otpauth_url, (err, data_url) => {
+            if (err) return res.status(500).json({ message: 'Error generating QR code' });
+            res.json({ secret: secret.base32, qrCode: data_url });
+        });
+
+    } catch (error) {
+        console.error('2FA Generation Error:', error);
+        res.status(500).json({ message: 'Server error generating 2FA' });
+    }
+};
+
+exports.verify2FA = async (req, res) => {
+    try {
+        const { userId, token, isSetup } = req.body;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user.twoFactorSecret) return res.status(400).json({ message: '2FA not initialized' });
+
+        const verified = speakeasy.totp.verify({
+            secret: user.twoFactorSecret,
+            encoding: 'base32',
+            token: token
+        });
+
+        if (verified) {
+            if (isSetup) {
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { mfaEnabled: true }
+                });
+                return res.json({ message: '2FA enabled successfully' });
+            } else {
+                // Login verification
+                const payload = {
+                    user: {
+                        id: user.id,
+                        username: user.username,
+                    },
+                };
+                const jwtToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+                return res.json({
+                    message: 'Verification successful',
+                    token: jwtToken,
+                    user: {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email,
+                        mfaEnabled: true
+                    }
+                });
+            }
+        } else {
+            return res.status(400).json({ message: 'Invalid code' });
+        }
+
+    } catch (error) {
+        console.error('2FA Verification Error:', error);
+        res.status(500).json({ message: 'Server error verifying 2FA' });
     }
 };

@@ -1,0 +1,83 @@
+
+model Revenue {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  
+  amount        Float
+  source        String
+  category      String
+  client        String?
+  projectId     String?
+  invoiceNumber String?
+  
+  date          DateTime
+  description   String?
+  isPaid        Boolean  @default(true)
+  paymentMethod String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId, date])
+}
+
+model BusinessExpense {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  amount          Float
+  category        String
+  expenseType     String
+  vendor          String?
+  projectId       String?
+  
+  date            DateTime
+  description     String?
+  isTaxDeductible Boolean  @default(true)
+  receiptUrl      String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId, date])
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  
+  name        String
+  client      String?
+  status      String    @default("active")
+  
+  investment  Float
+  revenue     Float     @default(0)
+  expenses    Float     @default(0)
+  
+  startDate   DateTime
+  endDate     DateTime?
+  
+  description String?
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+}
+
+model Client {
+  id           String    @id @default(uuid())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  
+  name         String
+  email        String?
+  phone        String?
+  company      String?
+  
+  totalRevenue Float     @default(0)
+  lastPurchase DateTime?
+  
+  createdAt    DateTime  @default(now())
+  
+  @@index([userId])
+}

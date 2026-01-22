@@ -200,15 +200,33 @@ exports.getForecast = async (req, res) => {
         // Based on current savings velocity = (Budget - (Average Monthly Expenses))
         const monthlyBudget = (budget.totalAmount / totalBudgetDays) * 30;
         const monthlyExpenses = avgDaily * 30;
-        const projectedMonthlySavings = Math.max(0, monthlyBudget - monthlyExpenses);
+
+        // Calculate actual monthly savings rate
+        // If we have expense data, use it; otherwise use a conservative estimate
+        let projectedMonthlySavings;
+        if (totalSpent > 0 && daysElapsed >= 7) {
+            // We have enough data to make a prediction
+            projectedMonthlySavings = Math.max(0, monthlyBudget - monthlyExpenses);
+        } else {
+            // Limited data: assume user will spend 70% of budget and save 30%
+            projectedMonthlySavings = monthlyBudget * 0.3;
+        }
+
+        // Factor in savings target as wealth accumulation
+        // Savings target is money set aside each period that builds wealth
+        const monthlySavingsContribution = savingsTarget > 0
+            ? (savingsTarget / totalBudgetDays) * 30
+            : 0;
 
         const projection = [];
         let currentNetWorth = budget.currentAmount;
+
         for (let i = 1; i <= 12; i++) {
-            currentNetWorth += projectedMonthlySavings;
+            // Wealth grows from: leftover budget + dedicated savings
+            currentNetWorth += projectedMonthlySavings + monthlySavingsContribution;
             projection.push({
                 month: `Month ${i}`,
-                netWorth: Math.round(currentNetWorth)
+                netWorth: Math.round(Math.max(0, currentNetWorth))
             });
         }
 

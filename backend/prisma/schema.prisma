@@ -17,13 +17,22 @@ model User {
   dob           DateTime
   workingStatus String
   mfaEnabled    Boolean        @default(false)
+  twoFactorSecret String?
   unusualActivityDetected Boolean @default(false)
+  accountType   String         @default("personal")
+  businessName  String?
+  businessType  String?
+  taxId         String?
   createdAt     DateTime       @default(now())
   budgets       Budget[]
   expenses      Expense[]
   goals         Goal[]
   subscriptions Subscription[]
   budgetHistory BudgetHistory[]
+  revenues      Revenue[]
+  businessExpenses BusinessExpense[]
+  projects      Project[]
+  clients       Client[]
 
   @@index([email])
 }
@@ -37,6 +46,8 @@ model Budget {
   currentAmount Float
   startDate     DateTime
   endDate       DateTime
+  status        String   @default("active")
+  endedAt       DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -107,4 +118,87 @@ model BudgetHistory {
 
   @@index([userId])
   @@index([archivedDate])
+}
+
+model Revenue {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  
+  amount        Float
+  source        String
+  category      String
+  client        String?
+  projectId     String?
+  invoiceNumber String?
+  
+  date          DateTime
+  description   String?
+  isPaid        Boolean  @default(true)
+  paymentMethod String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId, date])
+}
+
+model BusinessExpense {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  amount          Float
+  category        String
+  expenseType     String
+  vendor          String?
+  projectId       String?
+  
+  date            DateTime
+  description     String?
+  isTaxDeductible Boolean  @default(true)
+  receiptUrl      String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId, date])
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  
+  name        String
+  client      String?
+  status      String    @default("active")
+  
+  investment  Float
+  revenue     Float     @default(0)
+  expenses    Float     @default(0)
+  
+  startDate   DateTime
+  endDate     DateTime?
+  
+  description String?
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+}
+
+model Client {
+  id           String    @id @default(uuid())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  
+  name         String
+  email        String?
+  phone        String?
+  company      String?
+  
+  totalRevenue Float     @default(0)
+  lastPurchase DateTime?
+  
+  createdAt    DateTime  @default(now())
+  
+  @@index([userId])
 }

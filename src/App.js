@@ -19,6 +19,8 @@ import Achievement from './components/Home/Achievement';
 import Advisor from './components/Home/Advisor';
 import BudgetHistoryView from './components/Home/BudgetHistoryView';
 import BlogView from './components/BlogView';
+import HowItWorks from './components/Home/HowItWorks';
+import BusinessDashboard from './components/Business/BusinessDashboard';
 
 function App() {
   return (
@@ -43,6 +45,8 @@ function App() {
               <Route path="/advisor" element={<Advisor />} />
               <Route path="/budget-history" element={<BudgetHistoryView />} />
               <Route path="/blog/:id" element={<BlogView />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/business" element={<BusinessDashboard />} />
             </Routes>
           </Layout>
         </BudgetProvider>

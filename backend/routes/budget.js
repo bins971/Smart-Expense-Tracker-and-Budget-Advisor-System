@@ -222,7 +222,7 @@ router.get('/fetch/:userId', async (req, res) => {
       });
 
       const savingsTarget = budget.savingsTarget || 0;
-      const spendableBudget = budget.totalAmount - savingsTarget;
+      const spendableBudget = Math.max(0, budget.currentAmount - savingsTarget);
       const adjustedCurrentAmount = Math.max(0, budget.currentAmount - subscriptionTotal - savingsTarget);
 
       return res.json({
