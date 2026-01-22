@@ -103,13 +103,13 @@ function Page() {
             </AppBar>
 
             {/* Hero Section */}
-            <Container maxWidth="lg" sx={{ pt: 25, pb: 10, position: 'relative', zIndex: 1 }}>
+            <Container maxWidth="lg" sx={{ pt: 12, pb: 6, position: 'relative', zIndex: 1 }}>
                 <Box sx={{ textAlign: 'center', animation: 'fadeInUp 1.2s cubic-bezier(0.19, 1, 0.22, 1)' }}>
                     <Box sx={{
                         display: 'inline-block',
                         px: 3,
                         py: 1,
-                        mb: 4,
+                        mb: 3,
                         borderRadius: '50px',
                         background: 'rgba(255,255,255,0.03)',
                         border: '1px solid rgba(255,255,255,0.1)',
@@ -125,9 +125,9 @@ function Page() {
                         fontFamily: 'Poppins',
                         fontWeight: 950,
                         color: '#ffffff',
-                        fontSize: { xs: '3rem', md: '6rem' },
+                        fontSize: { xs: '2.5rem', md: '5rem' },
                         lineHeight: 1.1,
-                        mb: 4,
+                        mb: 3,
                         letterSpacing: '-0.05em'
                     }}>
                         Control Your <Box component="span" sx={{
@@ -136,10 +136,10 @@ function Page() {
                             WebkitTextFillColor: 'transparent'
                         }}>Wealth</Box> with Precision.
                     </Typography>
-                    <Typography variant="h5" sx={{ color: '#94a3b8', maxWidth: '700px', mx: 'auto', mb: 8, lineHeight: 1.6, fontWeight: 500 }}>
+                    <Typography variant="h5" sx={{ color: '#94a3b8', maxWidth: '700px', mx: 'auto', mb: 5, lineHeight: 1.6, fontWeight: 500, fontSize: { xs: '1rem', md: '1.25rem' } }}>
                         The most sophisticated expense management ecosystem designed for the modern architect of wealth. AI-powered insights, deep analytics, and crystalline focus.
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', mb: 10 }}>
+                    <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', mb: 6 }}>
                         <Link to="/signup" style={{ textDecoration: 'none' }}>
                             <Button sx={{
                                 borderRadius: '20px',
@@ -160,7 +160,7 @@ function Page() {
                     </Box>
 
                     {/* Stats Counter */}
-                    <Grid container spacing={4} sx={{ mt: 10 }}>
+                    <Grid container spacing={4} sx={{ mt: 2 }}>
                         {STATS.map((s, i) => (
                             <Grid item xs={12} sm={4} key={i}>
                                 <Box sx={{ p: 4, borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
@@ -174,8 +174,8 @@ function Page() {
             </Container>
 
             {/* Feature Bento Grid (MOVED UP) */}
-            <Container maxWidth="lg" sx={{ pb: 10, pt: 10 }}>
-                <Box sx={{ mb: 8, textAlign: 'center' }}>
+            <Container maxWidth="lg" sx={{ py: 6 }}>
+                <Box sx={{ mb: 4, textAlign: 'center' }}>
                     <Typography variant="h3" sx={{ fontWeight: 950, color: '#ffffff', mb: 2, letterSpacing: '-0.03em' }}>The Architecture.</Typography>
                     <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>Every tool you need to build a financial empire.</Typography>
                 </Box>
@@ -183,7 +183,7 @@ function Page() {
                     {FEATURES.map((f, i) => (
                         <Grid item xs={12} md={4} key={i}>
                             <Box sx={{
-                                p: 6,
+                                p: 5,
                                 borderRadius: '40px',
                                 background: 'rgba(15, 23, 42, 0.5)',
                                 backdropFilter: 'blur(32px)',
@@ -201,9 +201,9 @@ function Page() {
             </Container>
 
             {/* The Precision Protocol (How It Works) (MOVED UP) */}
-            <Box sx={{ bgcolor: 'rgba(2, 6, 23, 0.8)', py: 20 }}>
+            <Box sx={{ bgcolor: 'rgba(2, 6, 23, 0.8)', py: 6 }}>
                 <Container maxWidth="lg">
-                    <Box sx={{ textAlign: 'center', mb: 10 }}>
+                    <Box sx={{ textAlign: 'center', mb: 6 }}>
                         <Typography variant="h3" sx={{ fontWeight: 950, color: '#ffffff', mb: 2, letterSpacing: '-0.03em' }}>The Precision Protocol.</Typography>
                         <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>A 3-step engine designed for absolute clarity.</Typography>
                     </Box>
@@ -211,7 +211,7 @@ function Page() {
                         {PROTOCOL_STEPS.map((s, i) => (
                             <Grid item xs={12} md={4} key={i}>
                                 <Box sx={{
-                                    p: 6,
+                                    p: 5,
                                     borderRadius: '32px',
                                     border: '1px solid rgba(255,255,255,0.05)',
                                     background: 'rgba(255,255,255,0.02)',
@@ -243,7 +243,7 @@ function Page() {
             </Box>
 
             {/* Interactive Forecaster Section (MOVED DOWN) */}
-            <Container maxWidth="lg" sx={{ py: 20 }}>
+            <Container maxWidth="lg" sx={{ py: 6 }}>
                 <Box sx={{
                     p: { xs: 4, md: 8 },
                     borderRadius: '40px',
@@ -296,8 +296,8 @@ function Page() {
             </Container>
 
             {/* Quantum Security */}
-            <Container maxWidth="lg" sx={{ py: 20 }}>
-                <Grid container spacing={10} alignItems="center">
+            <Container maxWidth="lg" sx={{ py: 6 }}>
+                <Grid container spacing={8} alignItems="center">
                     <Grid item xs={12} md={6}>
                         <Box sx={{ p: 6, borderRadius: '40px', background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.05) 0%, rgba(2, 6, 23, 1) 100%)', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
                             <SecurityIcon sx={{ fontSize: '4rem', color: '#f43f5e', mb: 4 }} />
@@ -326,8 +326,8 @@ function Page() {
             </Container>
 
             {/* Neural Trust (Testimonials) - Infinite Scroll v2 */}
-            <Container maxWidth="xl" sx={{ py: 20, overflow: 'hidden' }}>
-                <Box sx={{ textAlign: 'center', mb: 10 }}>
+            <Container maxWidth="xl" sx={{ py: 6, overflow: 'hidden' }}>
+                <Box sx={{ textAlign: 'center', mb: 6 }}>
                     <Typography variant="h3" sx={{ fontWeight: 950, color: '#ffffff', mb: 2, letterSpacing: '-0.03em' }}>Neural Trust.</Typography>
                     <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>What the architects of modern wealth are saying.</Typography>
                 </Box>
@@ -379,8 +379,8 @@ function Page() {
             </Container>
 
             {/* Intelligent Journal Section */}
-            <Container maxWidth="lg" sx={{ pb: 20 }}>
-                <Box sx={{ mb: 10 }}>
+            <Container maxWidth="lg" sx={{ pb: 6 }}>
+                <Box sx={{ mb: 6 }}>
                     <Typography variant="h3" sx={{ fontWeight: 950, color: '#ffffff', mb: 2, letterSpacing: '-0.03em' }}>
                         Intelligent <Box component="span" sx={{ color: '#818cf8' }}>Journal</Box>
                     </Typography>
@@ -422,10 +422,10 @@ function Page() {
             </Container>
 
             {/* Neural FAQ */}
-            <Box sx={{ bgcolor: 'rgba(2, 6, 23, 0.8)', py: 20 }}>
+            <Box sx={{ bgcolor: 'rgba(2, 6, 23, 0.8)', py: 6 }}>
                 <Container maxWidth="md">
-                    <Box sx={{ textAlign: 'center', mb: 10 }}>
-                        <Typography variant="h3" sx={{ fontWeight: 950, color: '#ffffff', mb: 2, letterSpacing: '-0.03em' }}>Neural FAQ.</Typography>
+                    <Box sx={{ textAlign: 'center', mb: 6 }}>
+                        <Typography variant="h3" sx={{ fontWeight: 950, color: '#ffffff', mb: 2, letterSpacing: '-0.03em' }}>FAQ'S</Typography>
                         <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>Decoding common inquiries about the platform.</Typography>
                     </Box>
                     <Box>
@@ -452,9 +452,9 @@ function Page() {
             </Box>
 
             {/* Global Footer */}
-            <Box sx={{ background: '#010413', py: 15, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <Box sx={{ background: '#010413', py: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <Container maxWidth="lg">
-                    <Grid container spacing={10}>
+                    <Grid container spacing={6}>
                         <Grid item xs={12} md={4}>
                             <Typography variant="h5" sx={{ fontWeight: 950, color: '#ffffff', mb: 4 }}>SMART EXPENSE</Typography>
                             <Typography sx={{ color: '#64748b', lineHeight: 1.8, mb: 4 }}>Architecting the next generation of financial intelligence tools for the ambitious global citizen.</Typography>
@@ -480,7 +480,7 @@ function Page() {
                             </Box>
                         </Grid>
                     </Grid>
-                    <Box sx={{ mt: 10, pt: 4, borderTop: '1px solid rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                    <Box sx={{ mt: 6, pt: 4, borderTop: '1px solid rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                         <Typography sx={{ color: '#475569', fontSize: '0.8rem' }}>© 2026 Smart Expense Tracker. All Rights Reserved.</Typography>
                         <Typography sx={{ color: '#475569', fontSize: '0.8rem' }}>Precision Wealth Control Protocol v4.2.0</Typography>
                     </Box>
