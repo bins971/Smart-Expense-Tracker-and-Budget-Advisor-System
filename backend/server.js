@@ -33,12 +33,22 @@ app.use("/api/advisor", advisorRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 
 // Serve static assets if in production
+// Serve static assets if in production
 if (process.env.NODE_ENV === "production") {
   const path = require("path");
-  app.use(express.static(path.join(__dirname, "../build")));
+  // Check if build is in root (Railway) or sibling (Local)
+  const buildPath = path.join(__dirname, "../build");
+
+  console.log(`Serve static files from: ${buildPath}`);
+
+  app.use(express.static(buildPath));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../build", "index.html"));
+    // Exclude API routes from wildcard match to prevent HTML responses for API errors
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: "API endpoint not found" });
+    }
+    res.sendFile(path.resolve(buildPath, "index.html"));
   });
 }
 
