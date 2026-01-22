@@ -59,7 +59,7 @@ const FAQ_ITEMS = [
 
 function Page() {
     return (
-        <Box sx={{ position: 'relative', overflow: 'hidden', minHeight: '100vh', bgcolor: '#020617' }}>
+        <Box sx={{ position: 'relative', overflow: 'hidden', minHeight: '100vh', bgcolor: '#020617', display: 'flex', flexDirection: 'column' }}>
             {/* Nav */}
             <AppBar position="fixed" sx={{ background: 'rgba(2, 6, 23, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: 'none' }}>
                 <Toolbar>
@@ -452,27 +452,27 @@ function Page() {
             </Box>
 
             {/* Global Footer */}
-            <Box sx={{ background: '#010413', py: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <Box component="footer" sx={{ background: '#010413', py: 6, borderTop: '1px solid rgba(255,255,255,0.05)', mt: 'auto' }}>
                 <Container maxWidth="lg">
                     <Grid container spacing={6}>
-                        <Grid item xs={12} md={4}>
+                        <Grid item xs={12}>
                             <Typography variant="h5" sx={{ fontWeight: 950, color: '#ffffff', mb: 4 }}>SMART EXPENSE</Typography>
-                            <Typography sx={{ color: '#64748b', lineHeight: 1.8, mb: 4 }}>Architecting the next generation of financial intelligence tools for the ambitious global citizen.</Typography>
+                            <Typography sx={{ color: '#64748b', lineHeight: 1.8, mb: 4, maxWidth: '500px' }}>Architecting the next generation of financial intelligence tools for the ambitious global citizen.</Typography>
                         </Grid>
-                        <Grid item xs={6} md={2}>
+                        <Grid item xs={6}>
                             <Typography sx={{ color: '#ffffff', fontWeight: 900, mb: 3 }}>System</Typography>
                             {['Insights', 'Budgets', 'Archives', 'Forecasts'].map(l => (
                                 <Typography key={l} sx={{ color: '#64748b', mb: 1.5, cursor: 'pointer', '&:hover': { color: '#ffffff' } }}>{l}</Typography>
                             ))}
                         </Grid>
-                        <Grid item xs={6} md={2}>
+                        <Grid item xs={6}>
                             <Typography sx={{ color: '#ffffff', fontWeight: 900, mb: 3 }}>Company</Typography>
                             {['Vision', 'Security', 'Journal', 'Partners'].map(l => (
                                 <Typography key={l} sx={{ color: '#64748b', mb: 1.5, cursor: 'pointer', '&:hover': { color: '#ffffff' } }}>{l}</Typography>
                             ))}
                         </Grid>
-                        <Grid item xs={12} md={4}>
-                            <Box sx={{ p: 4, borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <Grid item xs={12}>
+                            <Box sx={{ p: 4, borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', maxWidth: '500px' }}>
                                 <Typography sx={{ color: '#ffffff', fontWeight: 800, mb: 2 }}>Ready for Precision?</Typography>
                                 <Link to="/signup" style={{ textDecoration: 'none' }}>
                                     <Button fullWidth sx={{ bgcolor: '#6366f1', color: 'white', fontWeight: 800, py: 1.5, borderRadius: '12px' }}>Initialize Account</Button>
