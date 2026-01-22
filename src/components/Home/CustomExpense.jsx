@@ -45,12 +45,12 @@ export default function CheckExpense() {
         <div>
           <div className={styles.cardContainer}>
             {displayedExpenses.map((expense) => (
-              <div key={expense._id} className={styles.card}>
+              <div key={expense.id || expense._id} className={styles.card}>
                 <h3>{expense.name}</h3>
                 <p><strong>Amount:</strong> ${expense.amount}</p>
                 <p><strong>Date:</strong> {new Date(expense.date).toLocaleDateString()}</p>
                 <p><strong>Description:</strong> {expense.description || "N/A"}</p>
-                <button onClick={() => handleEdit(expense._id)} className={styles.editButton}>Edit</button>
+                <button onClick={() => handleEdit(expense.id || expense._id)} className={styles.editButton}>Edit</button>
               </div>
             ))}
 

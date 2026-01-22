@@ -64,10 +64,9 @@ const Login = () => {
     <div className={styles.login}>
       <div className={styles["login-box"]}>
         <div className={styles["left-side"]}>
-          <h2>Welcome Back!</h2>
-          <p>Log in to continue accessing your account and goals.</p>
-          <img src={LoginImg} alt="Login" style={{ maxWidth: '300px', marginBottom: '20px' }} />
-
+          <h2>Welcome Back, Commander.</h2>
+          <p>Login to resume control of your financial destiny.</p>
+          <img src={LoginImg} alt="Login" />
         </div>
         <div className={styles["right-side"]}>
           <h2>Sign In</h2>
@@ -98,9 +97,8 @@ const Login = () => {
           </form>
           {errorMessage && <p className={styles["error-message"]}>{errorMessage}</p>}
           <div className={styles["signup-link"]}>
-
             <p>
-              New user? <Link to="/signup">Sign up</Link>
+              New to the precision? <Link to="/signup">Join Elite</Link>
             </p>
           </div>
         </div>

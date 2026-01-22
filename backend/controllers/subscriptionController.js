@@ -1,9 +1,7 @@
-const Subscription = require('../models/Subscription');
-const connectDB = require('../config/db');
+const prisma = require('../lib/db');
 
 // Add a new subscription
 exports.addSubscription = async (req, res) => {
-    await connectDB();
     const { user, name, amount, cycle, startDate } = req.body;
 
     try {
@@ -15,18 +13,19 @@ exports.addSubscription = async (req, res) => {
             nextDate.setFullYear(nextDate.getFullYear() + 1);
         }
 
-        const newSubscription = new Subscription({
-            user,
-            name,
-            amount,
-            cycle,
-            category: req.body.category || 'Subscription',
-            startDate: start,
-            nextPaymentDate: nextDate
+        const newSubscription = await prisma.subscription.create({
+            data: {
+                userId: user,
+                name,
+                amount: parseFloat(amount),
+                cycle: cycle || 'Monthly',
+                category: req.body.category || 'Subscription',
+                startDate: start,
+                nextPaymentDate: nextDate
+            }
         });
 
-        const savedSubscription = await newSubscription.save();
-        res.status(201).json(savedSubscription);
+        res.status(201).json(newSubscription);
     } catch (error) {
         console.error("Error adding subscription:", error);
         res.status(500).json({ message: "Server Error" });
@@ -35,11 +34,13 @@ exports.addSubscription = async (req, res) => {
 
 // Get all subscriptions for a user
 exports.getSubscriptions = async (req, res) => {
-    await connectDB();
     const { userId } = req.params;
 
     try {
-        const subscriptions = await Subscription.find({ user: userId }).sort({ nextPaymentDate: 1 });
+        const subscriptions = await prisma.subscription.findMany({
+            where: { userId },
+            orderBy: { nextPaymentDate: 'asc' }
+        });
         res.status(200).json(subscriptions);
     } catch (error) {
         console.error("Error fetching subscriptions:", error);
@@ -49,14 +50,16 @@ exports.getSubscriptions = async (req, res) => {
 
 // Delete a subscription
 exports.deleteSubscription = async (req, res) => {
-    await connectDB();
     const { id } = req.params;
 
     try {
-        await Subscription.findByIdAndDelete(id);
+        await prisma.subscription.delete({ where: { id } });
         res.status(200).json({ message: "Subscription Deleted" });
     } catch (error) {
         console.error("Error deleting subscription:", error);
+        if (error.code === 'P2025') {
+            return res.status(404).json({ message: "Subscription not found" });
+        }
         res.status(500).json({ message: "Server Error" });
     }
 };

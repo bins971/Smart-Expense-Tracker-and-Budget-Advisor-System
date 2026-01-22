@@ -1,121 +1,227 @@
-.dailyexpense{
-  display:flex;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+.dailyexpense {
+  display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  padding: 40px 20px;
+  background: transparent;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dailyexpense h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.togbtn {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 50px;
+  gap: 10px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.togbtn button {
+  padding: 10px 25px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.togbtn .activeButton {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.datePickerWrapper {
+  margin-bottom: 2.5rem;
+}
+
+.datePickerWrapper input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 254, 0.1);
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 250px;
+  text-align: center;
+}
+
+.datePickerWrapper input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+/* Custom DatePicker Styling overriding default react-datepicker */
+:global(.react-datepicker) {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font-family: 'Poppins', sans-serif !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+:global(.react-datepicker__header) {
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+:global(.react-datepicker__current-month),
+:global(.react-datepicker__day-name),
+:global(.react-datepicker__day) {
+  color: #fff !important;
+}
+
+:global(.react-datepicker__day:hover) {
+  background-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+:global(.react-datepicker__day--selected) {
+  background-color: #6366f1 !important;
+}
+
+.totalBanner {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem 3rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 3rem;
+  text-align: center;
+  backdrop-filter: blur(5px);
+}
+
+.totalBanner h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: #a855f7;
+  letter-spacing: 0.5px;
 }
 
 .cardContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+  padding: 0 40px 60px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  color: #ffffff;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.pageContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+}
+
+.card h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.card p {
+  margin: 10px 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  justify-content: space-between;
+}
+
+.card p strong {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #10b981 !important;
+}
+
+.nodata {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 30px;
+  margin: 40px;
+  border: 2px dashed rgba(255, 255, 255, 0.05);
+}
+
+.nodata p {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .cardContainer {
+    grid-template-columns: 1fr;
     padding: 20px;
   }
-  
-  .card {
-    background: linear-gradient(135deg, #3D52A0, #ADBBDA);
-    color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
 
-  .activeButton {
-    background-color: #4CAF50; 
-    color: white;
+  .dailyexpense h1 {
+    font-size: 2rem;
   }
-  
-  
-  .card:hover {
-    transform: translateY(-5px);
-  }
-  
-  h3 {
-    margin-top: 0;
-  }
-  
-  p {
-    margin: 8px 0;
-  }
-  
-  button {
-    padding: 8px 16px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
-  .editButton {
-    
-    
-    background-color: #FF7043;
-  }
-  
-  .editButton:hover {
-    background-color: #218838;
-  }
-  .viewAllButtonContainer {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  
-  .viewAllButton {
-    padding: 10px 20px;
-    background-color: #2575fc;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-  }
-  
-  .viewAllButton:hover {
-    background-color: #1a59c3;
-  }
-
-  .btnbody{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .createNew{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    color: #3D52A0;
-    border-radius: 10px;
-    box-shadow: 5px 4px 10px  rgba(0, 0, 0, 0.1);
-    max-width: 1700px; 
-    padding: 30px;
-    width: 95%; 
-    overflow: hidden;
-    margin: 50px auto;
-  }
-
-  .togbtn{
-    display:flex;
-    padding: 10px;
-    gap:20px;
-
-  }
-
-  .nodata{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    margin: 50px;
-    padding: 50px;
-  }
+}

@@ -11,6 +11,9 @@ const StyledForm = () => {
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [mood, setMood] = useState("");
+  const [showGuardrail, setShowGuardrail] = useState(false);
+  const [isProceeding, setIsProceeding] = useState(false);
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const handleCategoryChange = (e) => {
@@ -24,7 +27,14 @@ const StyledForm = () => {
   console.log("user")
   console.log(user)
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+
+    // High-Value Guardrail Logic
+    if (parseFloat(amount) >= 1000 && !isProceeding) {
+      setShowGuardrail(true);
+      return;
+    }
+
     try {
       const expenseData = {
         user: user.id,
@@ -33,9 +43,9 @@ const StyledForm = () => {
         amount: parseFloat(amount),
         date,
         description,
+        mood,
+        isHighValue: parseFloat(amount) >= 1000
       };
-
-      console.log(expenseData);
 
       const response = await fetch(`${API_URL}/expense/add`, {
         method: "POST",
@@ -47,8 +57,6 @@ const StyledForm = () => {
 
       const result = await response.json();
       if (response.ok) {
-        alert(result.message);
-
         navigate("/home", { state: { expense: result.expense } });
       } else {
         alert(result.error || "Failed to add expense.");
@@ -57,6 +65,16 @@ const StyledForm = () => {
       console.error("Error adding expense:", error);
       alert("An error occurred while adding the expense.");
     }
+  };
+
+  const handleConfirmHighValue = () => {
+    setIsProceeding(true);
+    setShowGuardrail(false);
+    // Use a timeout to ensure state updates before calling submit
+    setTimeout(() => {
+      const fakeEvent = { preventDefault: () => { } };
+      handleSubmit(fakeEvent);
+    }, 100);
   };
 
 
@@ -137,14 +155,46 @@ const StyledForm = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className={styles.textarea}
-              rows="3"
+              rows="2"
             />
+          </div>
+          <div className={styles.formRow}>
+            <label className={styles.moodLabel}>MARKET PSYCHOLOGY (MOOD)</label>
+            <select
+              value={mood}
+              onChange={(e) => setMood(e.target.value)}
+              className={styles.input}
+            >
+              <option value="">Select Emotion/Trigger</option>
+              <option value="Planned">Elite (Planned/Strategic)</option>
+              <option value="Impulse">Pulse (Impulse/Dopamine)</option>
+              <option value="Stressed">Heated (Stressed/Panic)</option>
+              <option value="Essential">Vital (Essential/Static)</option>
+              <option value="Investment">Growth (Investment/Compound)</option>
+            </select>
           </div>
           <button type="submit" className={styles.submitButton}>
             ADD
           </button>
         </form>
       </div>
+
+      {showGuardrail && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.guardrailModal}>
+            <div className={styles.guardrailIcon}>⚠️</div>
+            <h3 className={styles.guardrailTitle}>High-Value Guardrail Activated</h3>
+            <p className={styles.guardrailText}>
+              You are attempting to confirm a transaction of <strong>${amount}</strong>.
+              Our neural engine suggests a "Cooling Period" for values of this magnitude.
+            </p>
+            <div className={styles.modalActions}>
+              <button className={styles.cancelBtn} onClick={() => setShowGuardrail(false)}>Wait & Review</button>
+              <button className={styles.confirmBtn} onClick={handleConfirmHighValue}>I am Certain</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,38 +1,39 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const connectDB = require('../config/db');
+const prisma = require('../lib/db');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.signup = async (req, res) => {
-    await connectDB();
     const { username, email, password, gender, age, dob, workingStatus } = req.body;
 
     try {
         if (!username || !email || !password || !gender || !age || !dob || !workingStatus) {
             return res.status(400).json({ message: 'All fields are required' });
         }
-        const existingUser = await User.findOne({ email });
+
+        const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
+
         const hashedPassword = await bcrypt.hash(password, 8);
 
-        const newUser = new User({
-            username,
-            email,
-            password: hashedPassword,
-            gender,
-            age: Number(age),
-            dob: new Date(dob),
-            workingStatus: workingStatus.trim() || '',
+        const newUser = await prisma.user.create({
+            data: {
+                username,
+                email,
+                password: hashedPassword,
+                gender,
+                age: Number(age),
+                dob: new Date(dob),
+                workingStatus: workingStatus.trim() || '',
+            }
         });
 
-        await newUser.save();
         const payload = {
             user: {
-                id: newUser._id,
+                id: newUser.id,
                 username: newUser.username,
             },
         };
@@ -49,14 +50,14 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    await connectDB();
     const { email, password } = req.body;
 
     try {
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
         }
-        const user = await User.findOne({ email });
+
+        const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -65,20 +66,20 @@ exports.login = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+
         const payload = {
             user: {
-                id: user._id,
+                id: user.id,
             },
         };
 
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 
-        // In a later step, we will switch to cookies here
         res.status(200).json({
             message: 'Login successful',
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 username: user.username,
                 email: user.email,
             },
@@ -90,11 +91,10 @@ exports.login = async (req, res) => {
 };
 
 exports.getUserByEmail = async (req, res) => {
-    await connectDB();
     try {
-        const user = await User.findOne({ email: req.params.email });
+        const user = await prisma.user.findUnique({ where: { email: req.params.email } });
         if (user) {
-            return res.json({ user_id: user._id });
+            return res.json({ user_id: user.id });
         } else {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -104,10 +104,9 @@ exports.getUserByEmail = async (req, res) => {
 };
 
 exports.getUserById = async (req, res) => {
-    await connectDB();
     try {
         const { id } = req.params;
-        const user = await User.findById(id);
+        const user = await prisma.user.findUnique({ where: { id } });
         if (user) {
             return res.json(user);
         } else {
@@ -119,29 +118,26 @@ exports.getUserById = async (req, res) => {
 };
 
 exports.updateUser = async (req, res) => {
-    await connectDB();
     try {
         const email = req.params.email;
-        const updatedData = req.body;
+        const updatedData = { ...req.body };
 
         delete updatedData.email;
         delete updatedData.password;
 
-        const user = await User.findOneAndUpdate(
-            { email: email },
-            { $set: updatedData },
-            { new: true, runValidators: true }
-        );
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const user = await prisma.user.update({
+            where: { email },
+            data: updatedData,
+        });
 
         res.status(200).json({ message: 'Profile updated successfully', user });
     } catch (error) {
         console.error('Error updating user profile:', error);
 
-        if (error.code === 11000) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (error.code === 'P2002') {
             return res.status(400).json({ message: 'Duplicate email detected' });
         }
 

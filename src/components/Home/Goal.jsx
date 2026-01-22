@@ -76,15 +76,15 @@ const MyGoal = () => {
     }
 
     try {
-      const { _id } = selectedGoal;
-      const response = await axios.put(`${API_URL}/goal/${_id}`, { amount, saved });
+      const goalId = selectedGoal.id || selectedGoal._id;
+      const response = await axios.put(`${API_URL}/goal/${goalId}`, { amount, saved });
       alert(response.data.message || "Goal updated successfully!");
 
       if (saved >= amount) {
         setShowCongrats(true);
       }
       setGoals((prevGoals) =>
-        prevGoals.map((goal) => (goal._id === _id ? { ...goal, amount, saved } : goal))
+        prevGoals.map((goal) => ((goal.id || goal._id) === (selectedGoal.id || selectedGoal._id) ? { ...goal, amount, saved } : goal))
       );
       setSelectedGoal(null);
     } catch (error) {
@@ -100,7 +100,7 @@ const MyGoal = () => {
     try {
       const response = await axios.delete(`${API_URL}/goal/${goalId}`);
       alert(response.data.message || "Goal deleted successfully!");
-      setGoals((prevGoals) => prevGoals.filter((goal) => goal._id !== goalId));
+      setGoals((prevGoals) => prevGoals.filter((goal) => (goal.id || goal._id) !== goalId));
     } catch (error) {
       console.error("Error deleting goal:", error.response?.data || error.message);
       alert("Failed to delete the goal.");
@@ -184,11 +184,11 @@ const MyGoal = () => {
                 </Typography>
                 <Grid container spacing={4} justifyContent="center">
                   {accomplishedGoals.map((goal) => (
-                    <Grid item xs={12} sm={6} md={3} key={goal._id}>
+                    <Grid item xs={12} sm={6} md={3} key={goal.id || goal._id}>
                       <Card sx={{ ...glassCardStyle, background: 'linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%)', borderColor: '#A7F3D0' }}>
                         <IconButton
                           sx={{ position: "absolute", top: 8, right: 8, color: '#EF4444' }}
-                          onClick={() => handleDeleteGoal(goal._id)}
+                          onClick={() => handleDeleteGoal(goal.id || goal._id)}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -232,11 +232,11 @@ const MyGoal = () => {
                 </Typography>
                 <Grid container spacing={4} justifyContent="center">
                   {notAccomplishedGoals.map((goal) => (
-                    <Grid item xs={12} sm={6} md={3} key={goal._id}>
+                    <Grid item xs={12} sm={6} md={3} key={goal.id || goal._id}>
                       <Card sx={glassCardStyle}>
                         <IconButton
                           sx={{ position: "absolute", top: 8, right: 8, color: '#9CA3AF' }}
-                          onClick={() => handleDeleteGoal(goal._id)}
+                          onClick={() => handleDeleteGoal(goal.id || goal._id)}
                         >
                           <DeleteIcon />
                         </IconButton>

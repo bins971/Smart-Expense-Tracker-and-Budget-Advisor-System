@@ -10,6 +10,7 @@ const BudgetForm = () => {
   const { user } = useContext(AuthContext);
   const [error, setError] = useState('');
   const [totalAmount, setTotalAmount] = useState(null);
+  const [savingsTarget, setSavingsTarget] = useState(0);
   const [startdate, setstartdate] = useState(null);
   const [enddate, setenddate] = useState(null);
   const [budgetData, setBudgetData] = useState(null);
@@ -42,6 +43,11 @@ const BudgetForm = () => {
 
         setBudgetData(response1.data);
 
+        // Setting savings target
+        if (response1.data.savingsTarget !== undefined) {
+          setSavingsTarget(response1.data.savingsTarget);
+        }
+
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
@@ -72,6 +78,7 @@ const BudgetForm = () => {
       const body = {
         user: user.id,
         totalAmount,
+        savingsTarget: savingsTarget || 0,
         currentAmount: totalAmount,
         startDate: startdate,
         endDate: enddate,
@@ -105,21 +112,21 @@ const BudgetForm = () => {
         <p className={styles.welcomeText}>Fill in your Budget details!</p>
 
         <Box sx={{ mt: 4, mb: 4, textAlign: 'left', px: 3 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#EEF2FF', mb: 1, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#f8fafc', mb: 1.5, letterSpacing: '0.05em', textTransform: 'uppercase', opacity: 0.9 }}>
             🏆 How to earn medals
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <span style={{ fontSize: '1.2rem' }}>🥇</span> Save 30% or more to get Gold
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, bgcolor: 'rgba(255, 255, 255, 0.03)', p: 2, borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <Typography variant="caption" sx={{ color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <span style={{ fontSize: '1.4rem' }}>🥇</span> <Box component="span" sx={{ fontWeight: 600 }}>Save 30%+</Box> for Gold
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <span style={{ fontSize: '1.2rem' }}>🥈</span> Save 15% - 29% to get Silver
+            <Typography variant="caption" sx={{ color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <span style={{ fontSize: '1.4rem' }}>🥈</span> <Box component="span" sx={{ fontWeight: 600 }}>Save 15% - 29%</Box> for Silver
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <span style={{ fontSize: '1.2rem' }}>🥉</span> Save 5% - 14% to get Bronze
+            <Typography variant="caption" sx={{ color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <span style={{ fontSize: '1.4rem' }}>🥉</span> <Box component="span" sx={{ fontWeight: 600 }}>Save 5% - 14%</Box> for Bronze
             </Typography>
           </Box>
-          <Typography variant="caption" sx={{ display: 'block', mt: 2, fontStyle: 'italic', color: 'rgba(255,255,255,0.6)' }}>
+          <Typography variant="caption" sx={{ display: 'block', mt: 2, fontStyle: 'italic', color: '#94a3b8' }}>
             * Achievement is awarded when you set a NEW budget period.
           </Typography>
         </Box>
@@ -139,6 +146,26 @@ const BudgetForm = () => {
               required
             />
           </div>
+
+          <div className={styles.formRow}>
+            <label>Savings Target (Optional)</label>
+            <input
+              type="number"
+              value={savingsTarget}
+              onChange={(e) => setSavingsTarget(Number(e.target.value) || 0)}
+              className={styles.input}
+              placeholder="0"
+              min="0"
+            />
+          </div>
+
+          {totalAmount && savingsTarget > 0 && (
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+              <Typography variant="body2" sx={{ color: '#10B981', fontWeight: 700, fontFamily: 'Poppins' }}>
+                💰 Available for spending: ₱{(totalAmount - savingsTarget).toLocaleString()}
+              </Typography>
+            </Box>
+          )}
 
           <div className={styles.formRow}>
             <label>Start Date</label>

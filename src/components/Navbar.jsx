@@ -36,19 +36,24 @@ function CustomNavbar() {
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
-                        padding: '5px 15px',
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #1E1B4B 0%, #4338CA 100%)',
-                        boxShadow: '0 4px 15px rgba(67, 56, 202, 0.2)',
+                        gap: '12px',
+                        padding: '10px 24px',
+                        borderRadius: '20px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        boxShadow: '0 10px 30px 0 rgba(0, 0, 0, 0.4)',
                     }}>
                         <span style={{
-                            fontSize: '1.2rem',
-                            fontWeight: '900',
-                            color: '#FFFFFF',
+                            fontSize: '1.25rem',
+                            fontWeight: '950',
                             fontFamily: 'Poppins',
-                            letterSpacing: '0.1em',
-                            textTransform: 'uppercase'
+                            letterSpacing: '0.05em',
+                            textTransform: 'uppercase',
+                            background: 'linear-gradient(135deg, #ffffff 0%, #818cf8 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            filter: 'drop-shadow(0 0 10px rgba(129, 140, 248, 0.3))'
                         }}>
                             {getDisplayName()}'S TRACKER
                         </span>
@@ -61,7 +66,16 @@ function CustomNavbar() {
                         style={{ maxHeight: '100px' }}
                         navbarScroll
                     />
-                    <button id="loginbutton" onClick={handleLogout} className="btn" style={{ fontWeight: 600 }}>
+                    <button id="loginbutton" onClick={handleLogout} className="btn" style={{
+                        fontWeight: 800,
+                        color: '#ffffff',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        padding: '8px 20px',
+                        transition: 'all 0.3s ease',
+                        fontFamily: 'Poppins'
+                    }}>
                         LogOut
                     </button>
 

@@ -48,41 +48,49 @@ const Advisor = () => {
     return (
         <div className={styles.dbody}>
             <Container maxWidth="md" sx={{ py: 6 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-                    <IconButton onClick={() => navigate('/home')} sx={{ mr: 2, color: '#4F46E5', bgcolor: 'rgba(79, 70, 229, 0.05)', '&:hover': { bgcolor: 'rgba(79, 70, 229, 0.1)' } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
+                    <IconButton onClick={() => navigate('/home')} sx={{ mr: 2, color: '#ffffff', bgcolor: 'rgba(255,255,255,0.05)', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: '#1E1B4B' }}>
+                    <Typography variant="h3" sx={{ fontFamily: 'Poppins', fontWeight: 950, color: '#ffffff', letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #818cf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 0 20px rgba(129, 140, 248, 0.3))' }}>
                         Wealth Intelligence
                     </Typography>
                 </Box>
 
                 {error && (
                     <Box sx={{ mb: 4 }} className={styles.fadeInUp}>
-                        <Paper sx={{ p: 3, bgcolor: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: '24px', textAlign: 'center' }}>
-                            <Typography variant="body1" sx={{ color: '#991B1B', fontWeight: 600, fontFamily: 'Poppins', mb: 1 }}>
+                        <Paper sx={{ p: 3, bgcolor: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)', borderRadius: '24px', textAlign: 'center' }}>
+                            <Typography variant="body1" sx={{ color: '#f8fafc', fontWeight: 600, fontFamily: 'Poppins', mb: 1.5 }}>
                                 {error}
                             </Typography>
-                            <Button variant="outlined" color="error" size="small" onClick={generateAdvice} sx={{ borderRadius: '50px', textTransform: 'none', fontWeight: 700 }}>
+                            <Button variant="outlined" color="error" size="small" onClick={generateAdvice} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, borderColor: '#f43f5e', color: '#f43f5e', '&:hover': { bgcolor: 'rgba(244, 63, 94, 0.1)' } }}>
                                 Retry Intelligence Boot
                             </Button>
                         </Paper>
                     </Box>
                 )}
 
-                <Card className={`${styles.intelligenceCard} ${styles.fadeInUp}`}>
+                <Card sx={{
+                    borderRadius: '40px',
+                    background: 'rgba(15, 23, 42, 0.7)',
+                    backdropFilter: 'blur(32px) saturate(180%)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.8)',
+                    overflow: 'hidden'
+                }} className={styles.fadeInUp}>
                     <Box sx={{
-                        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
                         p: 6,
                         color: 'white',
                         textAlign: 'center',
-                        position: 'relative'
+                        position: 'relative',
+                        boxShadow: 'inset 0 -20px 40px -10px rgba(0,0,0,0.3)'
                     }}>
-                        <Avatar sx={{ width: 100, height: 100, bgcolor: 'rgba(255,255,255,0.2)', margin: '0 auto 20px', border: '4px solid rgba(255,255,255,0.3)' }}>
-                            <SmartToyIcon sx={{ fontSize: 60 }} />
+                        <Avatar sx={{ width: 120, height: 120, bgcolor: 'rgba(255,255,255,0.1)', margin: '0 auto 24px', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 0 30px rgba(99, 102, 241, 0.4)' }}>
+                            <PsychologyIcon sx={{ fontSize: 70, color: 'white' }} />
                         </Avatar>
-                        <Typography variant="h3" fontWeight="900" sx={{ fontFamily: 'Poppins', mb: 1, letterSpacing: '-0.03em' }}>AI Financial Intelligence</Typography>
-                        <Typography variant="h6" sx={{ opacity: 0.9, fontFamily: 'Poppins', fontWeight: 500 }}>Powered by Groq AI for lightning-fast wealth insights.</Typography>
+                        <Typography variant="h3" fontWeight="950" sx={{ fontFamily: 'Poppins', mb: 1, letterSpacing: '-0.04em', filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.3))' }}>Neural Advisor</Typography>
+                        <Typography variant="h6" sx={{ opacity: 0.9, fontFamily: 'Poppins', fontWeight: 600, letterSpacing: '0.05em' }}>NEXT-GEN WEALTH INTELLIGENCE</Typography>
                     </Box>
 
                     <Box sx={{ p: 5 }}>
@@ -92,13 +100,13 @@ const Advisor = () => {
                                     {[
                                         { icon: <TrendingUpIcon />, title: "Pattern Engine", desc: "Identifies deep behavioral trends." },
                                         { icon: <StarsIcon />, title: "Precision Advice", desc: "Tactical moves to optimize cashflow." },
-                                        { icon: <PsychologyIcon />, title: "Neural Forecasting", desc: "Projected end-of-period outcomes." }
+                                        { icon: <SmartToyIcon />, title: "Neural Forecasting", desc: "Projected end-of-period outcomes." }
                                     ].map((item, i) => (
                                         <Grid item xs={12} md={4} key={i}>
-                                            <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(79, 70, 229, 0.03)', borderRadius: '24px', border: '1px solid rgba(79, 70, 229, 0.05)', height: '100%' }}>
-                                                <Box sx={{ color: '#4F46E5', mb: 2 }}>{cloneElement(item.icon, { sx: { fontSize: 40 } })}</Box>
-                                                <Typography variant="h6" fontWeight="800" sx={{ fontFamily: 'Poppins', mb: 1 }}>{item.title}</Typography>
-                                                <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.9rem' }}>{item.desc}</Typography>
+                                            <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.02)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', height: '100%', transition: 'all 0.3s ease', '&:hover': { bgcolor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(99, 102, 241, 0.3)' } }}>
+                                                <Box sx={{ color: '#818cf8', mb: 2 }}>{cloneElement(item.icon, { sx: { fontSize: 40 } })}</Box>
+                                                <Typography variant="h6" fontWeight="800" sx={{ fontFamily: 'Poppins', mb: 1, color: '#ffffff' }}>{item.title}</Typography>
+                                                <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6 }}>{item.desc}</Typography>
                                             </Paper>
                                         </Grid>
                                     ))}
@@ -126,12 +134,12 @@ const Advisor = () => {
 
                         {loading && (
                             <Box sx={{ textAlign: 'center', py: 10 }}>
-                                <CircularProgress thickness={5} size={70} sx={{ color: '#4F46E5', mb: 4 }} />
-                                <Typography variant="h5" sx={{ fontFamily: 'Poppins', color: '#1E1B4B', fontWeight: 800, mb: 1 }} className={styles.loadingPulse}>
+                                <CircularProgress thickness={5} size={70} sx={{ color: '#818cf8', mb: 4 }} />
+                                <Typography variant="h5" sx={{ fontFamily: 'Poppins', color: '#ffffff', fontWeight: 900, mb: 1, letterSpacing: '-0.02em' }} className={styles.loadingPulse}>
                                     Synthesizing Financial Structures...
                                 </Typography>
-                                <Typography variant="body1" sx={{ color: '#6B7280' }}>
-                                    Groq AI is analyzing burn rates, subscription leakage, and velocity metrics.
+                                <Typography variant="body1" sx={{ color: '#94a3b8', fontWeight: 500 }}>
+                                    Neural AI is analyzing burn rates, subscription leakage, and velocity metrics.
                                 </Typography>
                             </Box>
                         )}
@@ -140,17 +148,17 @@ const Advisor = () => {
                             <Box className={styles.fadeInUp}>
                                 <Paper elevation={0} sx={{
                                     p: 5,
-                                    bgcolor: 'white',
+                                    bgcolor: 'rgba(255, 255, 255, 0.02)',
                                     borderRadius: '32px',
-                                    border: '1px solid #F1F5F9',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
                                     position: 'relative',
-                                    boxShadow: '0 10px 30px rgba(0,0,0,0.02)'
+                                    boxShadow: 'inset 0 0 40px rgba(0,0,0,0.2)'
                                 }}>
                                     <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <Chip
                                             icon={<StarsIcon style={{ color: 'white' }} />}
                                             label="INTELLIGENCE REPORT ACTIVE"
-                                            sx={{ bgcolor: '#4F46E5', color: 'white', fontWeight: 900, p: 1, borderRadius: '12px' }}
+                                            sx={{ bgcolor: 'rgba(99, 102, 241, 0.2)', border: '1px solid #6366f1', color: '#ffffff', fontWeight: 900, p: 1, borderRadius: '8px', letterSpacing: '0.05em' }}
                                         />
                                         <Typography variant="caption" sx={{ color: '#9CA3AF', fontWeight: 600 }}>
                                             {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -159,20 +167,21 @@ const Advisor = () => {
 
                                     <Box sx={{
                                         fontFamily: 'Poppins',
-                                        color: '#1F2937',
+                                        color: '#cbd5e1',
                                         '& h3': {
-                                            color: '#1E1B4B',
-                                            mt: 4,
+                                            color: '#ffffff',
+                                            mt: 5,
                                             mb: 2,
                                             fontWeight: 900,
-                                            fontSize: '1.5rem',
-                                            borderLeft: '4px solid #4F46E5',
-                                            pl: 2
+                                            fontSize: '1.6rem',
+                                            borderLeft: '4px solid #6366f1',
+                                            pl: 2,
+                                            letterSpacing: '-0.02em'
                                         },
-                                        '& p': { mb: 2, lineHeight: 1.8, fontSize: '1.05rem' },
+                                        '& p': { mb: 2, lineHeight: 1.8, fontSize: '1.1rem' },
                                         '& ul, & ol': { mb: 3, pl: 3 },
-                                        '& li': { mb: 1.5, lineHeight: 1.6, fontSize: '1rem' },
-                                        '& strong': { color: '#4F46E5', fontWeight: 800 }
+                                        '& li': { mb: 2, lineHeight: 1.7, fontSize: '1.05rem' },
+                                        '& strong': { color: '#818cf8', fontWeight: 800 }
                                     }}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                             {advice}
@@ -189,9 +198,10 @@ const Advisor = () => {
                                             py: 2,
                                             borderStyle: 'dashed',
                                             textTransform: 'none',
-                                            fontWeight: 700,
-                                            color: '#4F46E5',
-                                            '&:hover': { borderStyle: 'solid', bgcolor: 'rgba(79, 70, 229, 0.02)' }
+                                            fontWeight: 800,
+                                            color: '#818cf8',
+                                            borderColor: 'rgba(129, 140, 248, 0.3)',
+                                            '&:hover': { borderStyle: 'solid', bgcolor: 'rgba(129, 140, 248, 0.05)', borderColor: '#818cf8' }
                                         }}
                                     >
                                         Regenerate Analysis

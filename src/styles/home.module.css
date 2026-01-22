@@ -2,24 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background:
-    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.08) 0, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.08) 0, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0, transparent 50%),
-    #F9FAFB;
   padding-bottom: 8rem;
-}
-
-.navbody {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-bottom: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  padding: 0.5rem 1rem;
 }
 
 .dbody {
@@ -27,186 +10,80 @@
   margin: 0 auto;
   max-width: 1300px;
   width: 100%;
-  position: relative;
-  overflow: hidden;
 }
 
-.dbody::before {
-  content: "";
-  position: absolute;
-  top: -15%;
-  left: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 70%);
-  z-index: -1;
-  filter: blur(80px);
-}
-
-.dbody::after {
-  content: "";
-  position: absolute;
-  bottom: -15%;
-  right: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
-  z-index: -1;
-  filter: blur(80px);
-}
-
+/* High-Contrast Luxury Welcome */
 .wel {
-  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #93c5fd 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 800;
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 3rem;
-  letter-spacing: -0.02em;
+  font-weight: 900;
+  text-align: left;
+  margin-top: 1.5rem;
+  font-size: 4rem;
+  letter-spacing: -0.04em;
+  filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.3));
+  line-height: 1;
 }
 
 .hname {
-  color: #3730A3;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(79, 70, 229, 0.15);
-  margin: 0 auto 2.5rem auto;
-  padding: 10px 30px;
-  font-size: 1.4rem;
-  font-weight: 800;
+  color: #818cf8;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 1.5rem 0 3rem 0;
+  padding: 10px 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
   max-width: fit-content;
   border-radius: 50px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  text-align: center;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.btnmain {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 3rem 0;
-}
-
-.btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+/* Crystal-Dark Glass Cards */
+.glassCard {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
   color: #ffffff;
-  width: 18rem;
-  border: none;
-  border-radius: 16px;
-  height: 3.8rem;
-  font-size: 1rem;
-  font-weight: 700;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5);
-  letter-spacing: 0.01em;
 }
 
-.btn:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 20px 30px -12px rgba(79, 70, 229, 0.4);
-  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
-  color: white;
+.glassCard:hover {
+  transform: translateY(-10px) scale(1.02);
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow:
+    0 40px 80px -20px rgba(0, 0, 0, 0.8),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.2);
 }
 
-.cardcontainer {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  margin: 40px auto 50px auto;
-  padding: 20px;
-  max-width: 1300px;
-  width: 90%;
-  flex-wrap: wrap;
+.greetingAnim {
+  animation: revealUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
-.card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  color: var(--text-primary);
-  width: 40rem;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: var(--glass-shadow);
-  text-align: center;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border-color: var(--primary-light);
-}
-
-.card h3 {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 15px;
-  color: var(--primary);
-}
-
-.card button {
-  background: linear-gradient(135deg, var(--accent) 0%, #e11d48 100%);
-  color: white;
-  border: none;
-  padding: 12px 30px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 14px 0 rgba(244, 63, 94, 0.39);
-}
-
-.card button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(244, 63, 94, 0.23);
-  background: linear-gradient(135deg, #e11d48 0%, var(--accent) 100%);
-}
-
-.profile {
-  color: var(--primary);
-  margin-left: 20px;
-  transition: transform 0.2s ease;
-  display: flex;
-  align-items: center;
-}
-
-.profile:hover {
-  transform: scale(1.1);
-  color: var(--primary-light);
-}
-
-.imagefullscreen {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  border-radius: var(--radius);
-  box-shadow: var(--glass-shadow);
-}
-
-@keyframes fadeInUp {
+@keyframes revealUp {
   from {
-    opacity: 0;
-    transform: translate3d(0, 40px, 0);
+    opacity: 0.1;
+    transform: translateY(60px);
   }
 
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translateY(0);
   }
 }
 
 .fadeInUp {
-  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  opacity: 0;
+  animation: revealUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 .delay1 {
@@ -225,34 +102,37 @@
   animation-delay: 0.4s;
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.delay5 {
+  animation-delay: 0.5s;
 }
 
-.greetingAnim {
-  animation: slideInLeft 0.8s ease-out forwards;
+/* Premium Navigation Frame */
+.navbody {
+  background: rgba(2, 6, 23, 0.8) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  padding: 0.8rem 2rem;
 }
 
-.glassCard {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
-  border-radius: 24px;
-  overflow: hidden;
-  transition: all 0.3s ease;
+.profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  margin-left: 10px;
 }
 
-.glassCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
-  border-color: #4F46E5;
+.profile:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #818cf8;
+  color: #818cf8;
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 10px 20px -5px rgba(129, 140, 248, 0.4);
 }

@@ -96,9 +96,9 @@ const UserSignUp = () => {
     <div className={styles.signupPage}>
       <div className={styles.signupCard}>
         <div className={styles.signupLeft}>
-          <h2>Welcome!</h2>
-          <p>Join us and explore amazing opportunities.</p>
-          <img src={signup} alt="Sign-Up" style={{ maxWidth: '300px', marginBottom: '20px' }} />
+          <h2>Join the Elite.</h2>
+          <p>Unleash the power of AI-driven financial precision.</p>
+          <img src={signup} alt="Sign-Up" />
         </div>
 
         <div className={styles.signupRight}>
@@ -224,7 +224,7 @@ const UserSignUp = () => {
 
           <div className={styles.loginLink}>
             <p>
-              Already have an account? <Link to="/">Log in</Link>
+              Already part of the precision? <Link to="/login">Sign In</Link>
             </p>
           </div>
 

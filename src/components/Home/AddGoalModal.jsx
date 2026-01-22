@@ -58,36 +58,58 @@ const AddGoalModal = ({ open, onClose, onGoalAdded }) => {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Add New Financial Goal</DialogTitle>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            fullWidth
+            maxWidth="sm"
+            PaperProps={{
+                sx: {
+                    bgcolor: 'rgba(15, 23, 42, 0.95)',
+                    backdropFilter: 'blur(32px) saturate(180%)',
+                    borderRadius: '32px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.8)',
+                    color: '#ffffff',
+                    p: 2
+                }
+            }}
+        >
+            <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.02em', mb: 1 }}>Add New Financial Goal</DialogTitle>
             <DialogContent>
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>{error}</Alert>}
 
                 <TextField
                     autoFocus margin="dense" label="Goal Name" name="name" fullWidth variant="outlined"
                     value={goalData.name} onChange={handleInputChange} required
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 />
                 <TextField
                     margin="dense" label="Target Amount (₱)" name="amount" type="number" fullWidth variant="outlined"
                     value={goalData.amount} onChange={handleInputChange} required
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 />
                 <TextField
                     margin="dense" label="Already Saved (Optional)" name="saved" type="number" fullWidth variant="outlined"
                     value={goalData.saved} onChange={handleInputChange}
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 />
                 <TextField
                     margin="dense" label="Start Date" name="startDate" type="date" fullWidth variant="outlined"
                     InputLabelProps={{ shrink: true }}
                     value={goalData.startDate} onChange={handleInputChange}
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 />
                 <TextField
                     margin="dense" label="Target Date" name="endDate" type="date" fullWidth variant="outlined"
                     InputLabelProps={{ shrink: true }}
                     value={goalData.endDate} onChange={handleInputChange} required
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 />
                 <TextField
                     margin="dense" label="Priority" name="priority" select fullWidth variant="outlined"
                     value={goalData.priority} onChange={handleInputChange}
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 >
                     <MenuItem value="High">High</MenuItem>
                     <MenuItem value="Medium">Medium</MenuItem>
@@ -96,11 +118,27 @@ const AddGoalModal = ({ open, onClose, onGoalAdded }) => {
                 <TextField
                     margin="dense" label="Description" name="description" multiline rows={3} fullWidth variant="outlined"
                     value={goalData.description} onChange={handleInputChange}
+                    sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.03)', color: '#ffffff' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
                 />
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={handleSubmit} variant="contained" color="primary">Create Goal</Button>
+            <DialogActions sx={{ px: 3, pb: 4, gap: 2 }}>
+                <Button onClick={onClose} sx={{ color: '#94a3b8', fontWeight: 700, textTransform: 'none' }}>Cancel</Button>
+                <Button
+                    onClick={handleSubmit}
+                    variant="contained"
+                    sx={{
+                        borderRadius: '16px',
+                        bgcolor: '#6366f1',
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: 800,
+                        textTransform: 'none',
+                        boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.4)',
+                        '&:hover': { bgcolor: '#818cf8' }
+                    }}
+                >
+                    Create Goal
+                </Button>
             </DialogActions>
         </Dialog>
     );

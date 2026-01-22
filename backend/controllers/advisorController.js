@@ -1,11 +1,7 @@
-const Budget = require('../models/Budget');
-const Expense = require('../models/Expense');
-const Goal = require('../models/Goal');
+const prisma = require('../lib/db');
 const Groq = require('groq-sdk');
-const connectDB = require('../config/db');
 
 exports.getAdvice = async (req, res) => {
-    await connectDB();
     try {
         const { userId } = req.body;
 
@@ -21,12 +17,11 @@ exports.getAdvice = async (req, res) => {
             apiKey: process.env.GROQ_API_KEY
         });
 
-        // Fetch User's Budget
-        const budget = await Budget.findOne({ user: userId });
-        const expenses = await Expense.find({ user: userId });
-        const goals = await Goal.find({ user: userId });
-        const Subscription = require('../models/Subscription');
-        const subscriptions = await Subscription.find({ user: userId });
+        // Fetch User's Data using Prisma
+        const budget = await prisma.budget.findFirst({ where: { userId } });
+        const expenses = await prisma.expense.findMany({ where: { userId } });
+        const goals = await prisma.goal.findMany({ where: { userId } });
+        const subscriptions = await prisma.subscription.findMany({ where: { userId } });
 
         if (!budget) {
             return res.status(200).json({
@@ -121,43 +116,128 @@ FORMATTING:
 };
 
 exports.getForecast = async (req, res) => {
-    await connectDB();
     try {
         const { userId } = req.params;
 
-        const expenses = await Expense.find({ user: userId }).sort({ date: 1 });
-        const budget = await Budget.findOne({ user: userId });
+        const [budget, expenses, subscriptions] = await Promise.all([
+            prisma.budget.findFirst({ where: { userId } }),
+            prisma.expense.findMany({
+                where: { userId },
+                orderBy: { date: 'asc' }
+            }),
+            prisma.subscription.findMany({ where: { userId } })
+        ]);
 
-        if (!expenses || expenses.length === 0) {
-            return res.status(200).json({ predictedAmount: 0, trend: 'neutral', message: 'Not enough data' });
+        if (!budget) {
+            return res.status(200).json({ predictedAmount: 0, trend: 'neutral', message: 'No budget set' });
         }
 
-        const firstDate = new Date(expenses[0].date);
-        const lastDate = new Date();
-        const daysDiff = Math.max(1, Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24)));
+        // Use budget period dates for accurate calculation
+        const budgetStart = new Date(budget.startDate || budget.startdate);
+        const budgetEnd = new Date(budget.endDate || budget.enddate);
+        const today = new Date();
 
-        const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
-        const avgDaily = totalSpent / daysDiff;
+        // Calculate total days in budget period
+        const totalBudgetDays = Math.max(1, Math.ceil((budgetEnd - budgetStart) / (1000 * 60 * 60 * 24)));
 
-        const Subscription = require('../models/Subscription');
-        const subscriptions = await Subscription.find({ user: userId });
-        const monthlySubTotal = subscriptions.reduce((acc, sub) => {
-            return acc + (sub.cycle === 'Monthly' ? sub.amount : sub.amount / 12);
-        }, 0);
+        // Calculate days elapsed in budget period (capped at today if budget is still active)
+        const effectiveEnd = today < budgetEnd ? today : budgetEnd;
+        const daysElapsed = Math.max(1, Math.ceil((effectiveEnd - budgetStart) / (1000 * 60 * 60 * 24)));
 
-        const predictedAmount = (avgDaily * 30) + monthlySubTotal;
+        // Calculate remaining days
+        const daysRemaining = Math.max(0, Math.ceil((budgetEnd - today) / (1000 * 60 * 60 * 24)));
 
+        // Filter expenses within budget period
+        const budgetExpenses = expenses.filter(e => {
+            const expenseDate = new Date(e.date);
+            return expenseDate >= budgetStart && expenseDate <= effectiveEnd;
+        });
+
+        const totalSpent = budgetExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+        const avgDaily = daysElapsed > 0 ? totalSpent / daysElapsed : 0;
+
+        // Account for subscriptions
+        // Calculate expected subscription charges for remaining period
+        let futureSubCharges = 0;
+        subscriptions.forEach(sub => {
+            if (sub.cycle === 'Monthly') {
+                const monthsRemaining = daysRemaining / 30;
+                futureSubCharges += sub.amount * monthsRemaining;
+            } else if (sub.cycle === 'Yearly') {
+                const subStart = new Date(sub.startDate);
+                if (subStart >= today && subStart <= budgetEnd) {
+                    futureSubCharges += sub.amount;
+                }
+            }
+        });
+
+        // Predict total spending by end of budget period
+        const predictedRemainingSpending = (avgDaily * daysRemaining) + futureSubCharges;
+        const predictedTotalSpending = totalSpent + predictedRemainingSpending;
+
+        // Spendable budget (after savings target)
+        const savingsTarget = budget.savingsTarget || 0;
+        const spendableBudget = budget.totalAmount - savingsTarget;
+
+        // Determination of trend and status message
         let trend = 'neutral';
-        if (budget) {
-            if (predictedAmount > budget.totalAmount) trend = 'up';
-            else if (predictedAmount < budget.totalAmount * 0.8) trend = 'down';
+        let statusMessage = 'On Track';
+        const budgetPercent = spendableBudget > 0 ? (totalSpent / spendableBudget) * 100 : 0;
+        const timePercent = (daysElapsed / totalBudgetDays) * 100;
+
+        if (budgetPercent > timePercent + 10) {
+            trend = 'up';
+            statusMessage = 'Overspending Warning';
+        } else if (budgetPercent > timePercent) {
+            trend = 'caution';
+            statusMessage = 'Slightly Ahead of Schedule';
+        } else if (budgetPercent > 0) {
+            trend = 'down';
+            statusMessage = 'On Track';
         }
+
+        // Neural Wealth Architecture: 12-Month Projection
+        // Based on current savings velocity = (Budget - (Average Monthly Expenses))
+        const monthlyBudget = (budget.totalAmount / totalBudgetDays) * 30;
+        const monthlyExpenses = avgDaily * 30;
+        const projectedMonthlySavings = Math.max(0, monthlyBudget - monthlyExpenses);
+
+        const projection = [];
+        let currentNetWorth = budget.currentAmount;
+        for (let i = 1; i <= 12; i++) {
+            currentNetWorth += projectedMonthlySavings;
+            projection.push({
+                month: `Month ${i}`,
+                netWorth: Math.round(currentNetWorth)
+            });
+        }
+
+        // Anomaly Detection
+        const recentThreshold = 3; // days
+        const recentExpenses = budgetExpenses.filter(e => {
+            const expDate = new Date(e.date);
+            const diff = (today - expDate) / (1000 * 60 * 60 * 24);
+            return diff <= recentThreshold;
+        });
+        const highValueAnomalies = recentExpenses.filter(e => e.amount >= 1000 || e.isHighValue);
+        const anomalyAlert = highValueAnomalies.length > 0
+            ? `Detected ${highValueAnomalies.length} high-value transaction(s) in the last 72 hours.`
+            : null;
 
         res.status(200).json({
-            predictedAmount: Math.round(predictedAmount),
+            predictedAmount: Math.round(predictedTotalSpending),
             avgDaily: Math.round(avgDaily),
-            monthlySubTotal: Math.round(monthlySubTotal),
-            trend
+            daysRemaining,
+            totalBudgetDays,
+            daysElapsed,
+            spendableBudget: Math.round(spendableBudget),
+            trend,
+            statusMessage,
+            burnRate: budgetPercent.toFixed(1),
+            timePercent: timePercent.toFixed(1),
+            projection,
+            anomalyAlert,
+            savingsVelocity: Math.round(projectedMonthlySavings)
         });
 
     } catch (error) {

@@ -1,27 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const Expense = require('../models/Expense');
-const Budget = require('../models/Budget');
-const connectDB = require('../config/db');
+const prisma = require('../lib/db');
 
 router.post("/add", async (req, res) => {
-  await connectDB();
   try {
-    const { user, category, name, amount, date, description } = req.body;
+    const { user, category, name, amount, date, description, mood, isHighValue } = req.body;
 
-    const newExpense = new Expense({
-      user,
-      category,
-      name,
-      amount,
-      date,
-      description,
-    });
-
-
-
-    const budget = await Budget.findOne({ user: user });
+    const budget = await prisma.budget.findFirst({ where: { userId: user } });
     if (!budget) {
       return res.status(404).json({ error: "No budget found for this user." });
     }
@@ -29,10 +14,25 @@ router.post("/add", async (req, res) => {
     if (budget.currentAmount < amount) {
       return res.status(400).json({ error: "Insufficient budget for this expense." });
     }
-    console.log("no")
-    await newExpense.save();
-    budget.currentAmount -= amount;
-    await budget.save();
+
+    const newExpense = await prisma.expense.create({
+      data: {
+        userId: user,
+        category,
+        name,
+        amount: parseFloat(amount),
+        date: date ? new Date(date) : new Date(),
+        description,
+        mood,
+        isHighValue: !!isHighValue
+      }
+    });
+
+    // Update budget
+    await prisma.budget.update({
+      where: { id: budget.id },
+      data: { currentAmount: budget.currentAmount - parseFloat(amount) }
+    });
 
     res.status(201).json({
       message: "Expense added and budget updated!",
@@ -45,53 +45,36 @@ router.post("/add", async (req, res) => {
 });
 
 router.get('/daily-expenses/:userId', async (req, res) => {
-  await connectDB();
-  console.log("working")
   try {
     const { userId } = req.params;
 
-
-    const budget = await Budget.findOne({ user: userId });
-
+    const budget = await prisma.budget.findFirst({ where: { userId } });
     if (!budget) {
       return res.status(404).json({ error: 'Budget not found for the user.' });
     }
 
     const { startDate, endDate } = budget;
-    const Subscription = require('../models/Subscription');
-    const subscriptions = await Subscription.find({ user: userId });
+    const subscriptions = await prisma.subscription.findMany({ where: { userId } });
 
-    const dailyExpensesQuery = await Expense.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(userId),
-          date: { $gte: new Date(startDate), $lte: new Date(endDate) },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$date' },
-          },
-          totalAmount: { $sum: '$amount' },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+    // Get expenses grouped by date
+    const expenses = await prisma.expense.findMany({
+      where: {
+        userId,
+        date: { gte: new Date(startDate), lte: new Date(endDate) }
+      }
+    });
 
-    // Convert to a map for easy merging
-    const dailyMap = dailyExpensesQuery.reduce((acc, curr) => {
-      acc[curr._id] = curr.totalAmount;
-      return acc;
-    }, {});
+    // Group by date
+    const dailyMap = {};
+    expenses.forEach(exp => {
+      const dateStr = new Date(exp.date).toISOString().split('T')[0];
+      dailyMap[dateStr] = (dailyMap[dateStr] || 0) + exp.amount;
+    });
 
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     subscriptions.forEach(sub => {
-      let current = new Date(sub.startDate);
-
-
       if (sub.cycle === 'Monthly') {
         let temp = new Date(start);
         while (temp <= end) {
@@ -103,9 +86,8 @@ router.get('/daily-expenses/:userId', async (req, res) => {
           temp.setMonth(temp.getMonth() + 1);
         }
       } else if (sub.cycle === 'Yearly') {
-        let temp = new Date(start);
         const subStart = new Date(sub.startDate);
-        const subDate = new Date(temp.getFullYear(), subStart.getMonth(), subStart.getDate());
+        const subDate = new Date(start.getFullYear(), subStart.getMonth(), subStart.getDate());
         if (subDate >= start && subDate <= end) {
           const dateStr = subDate.toISOString().split('T')[0];
           dailyMap[dateStr] = (dailyMap[dateStr] || 0) + sub.amount;
@@ -129,29 +111,37 @@ router.get('/daily-expenses/:userId', async (req, res) => {
   }
 });
 
-
 router.get('/all/:user', async (req, res) => {
-  await connectDB();
   try {
     const { user: userId } = req.params;
-    const budget = await Budget.findOne({ user: userId });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-    let query = { user: userId };
+    const budget = await prisma.budget.findFirst({ where: { userId } });
+
+    let whereClause = { userId };
     if (budget) {
-      query.date = { $gte: new Date(budget.startDate), $lte: new Date(budget.endDate) };
+      whereClause.date = { gte: new Date(budget.startDate), lte: new Date(budget.endDate) };
     }
 
-    let expenses = await Expense.find(query).sort({ date: -1 }).lean();
+    const [expenses, totalDBExpenses] = await Promise.all([
+      prisma.expense.findMany({
+        where: whereClause,
+        orderBy: { date: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.expense.count({ where: whereClause })
+    ]);
 
     // Add subscription costs as virtual transactions
-    const Subscription = require('../models/Subscription');
-    const subscriptions = await Subscription.find({ user: userId });
+    const subscriptions = await prisma.subscription.findMany({ where: { userId } });
 
     if (budget) {
       const start = new Date(budget.startDate);
       const end = new Date(budget.endDate);
 
-      const today = new Date();
       subscriptions.forEach(sub => {
         if (sub.cycle === 'Monthly') {
           let temp = new Date(start);
@@ -159,8 +149,8 @@ router.get('/all/:user', async (req, res) => {
             const subDate = new Date(temp.getFullYear(), temp.getMonth(), new Date(sub.startDate).getDate());
             if (subDate >= start && subDate <= end) {
               expenses.push({
-                _id: `sub-${sub._id}-${subDate.getTime()}`,
-                user: sub.user,
+                id: `sub-${sub.id}-${subDate.getTime()}`,
+                userId: sub.userId,
                 category: sub.category || 'Subscription',
                 name: `${sub.name} (Subscription)`,
                 amount: sub.amount,
@@ -176,8 +166,8 @@ router.get('/all/:user', async (req, res) => {
           const subDate = new Date(start.getFullYear(), subStart.getMonth(), subStart.getDate());
           if (subDate >= start && subDate <= end) {
             expenses.push({
-              _id: `sub-${sub._id}-${subDate.getTime()}`,
-              user: sub.user,
+              id: `sub-${sub.id}-${subDate.getTime()}`,
+              userId: sub.userId,
               category: sub.category || 'Subscription',
               name: `${sub.name} (Subscription)`,
               amount: sub.amount,
@@ -190,32 +180,38 @@ router.get('/all/:user', async (req, res) => {
       });
     }
 
-    // Sort again since we added virtual transactions
+    // Sort again
     expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.status(200).json({
       message: "Expenses fetched successfully!",
       expenses,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalDBExpenses / limit),
+        totalItems: totalDBExpenses,
+        itemsPerPage: limit,
+        note: "Subscriptions are appended to the current page of expenses."
+      }
     });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 router.get('/category-percentage/:user', async (req, res) => {
-  await connectDB();
   try {
     const { user: userId } = req.params;
-    const budget = await Budget.findOne({ user: userId });
+    const budget = await prisma.budget.findFirst({ where: { userId } });
 
-    let query = { user: userId };
+    let whereClause = { userId };
     if (budget) {
-      query.date = { $gte: new Date(budget.startDate), $lte: new Date(budget.endDate) };
+      whereClause.date = { gte: new Date(budget.startDate), lte: new Date(budget.endDate) };
     }
 
-    const expenses = await Expense.find(query).lean();
-    const Subscription = require('../models/Subscription');
-    const subscriptions = await Subscription.find({ user: userId });
+    const expenses = await prisma.expense.findMany({ where: whereClause });
+    const subscriptions = await prisma.subscription.findMany({ where: { userId } });
 
     const categorySums = expenses.reduce((acc, expense) => {
       if (!acc[expense.category]) acc[expense.category] = 0;
@@ -223,12 +219,10 @@ router.get('/category-percentage/:user', async (req, res) => {
       return acc;
     }, {});
 
-    // Add subscription costs if a budget exists
     if (budget) {
       const start = new Date(budget.startDate);
       const end = new Date(budget.endDate);
 
-      const today = new Date();
       subscriptions.forEach(sub => {
         let count = 0;
         if (sub.cycle === 'Monthly') {
@@ -271,7 +265,6 @@ router.get('/category-percentage/:user', async (req, res) => {
 });
 
 router.get('/duration/:user', async (req, res) => {
-  await connectDB();
   try {
     const { user } = req.params;
     const { startDate, endDate } = req.query;
@@ -280,12 +273,11 @@ router.get('/duration/:user', async (req, res) => {
       return res.status(400).json({ error: "Please provide both startDate and endDate in query parameters." });
     }
 
-    const expenses = await Expense.find({
-      user: user,
-      date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      },
+    const expenses = await prisma.expense.findMany({
+      where: {
+        userId: user,
+        date: { gte: new Date(startDate), lte: new Date(endDate) }
+      }
     });
 
     if (!expenses.length) {
@@ -303,16 +295,14 @@ router.get('/duration/:user', async (req, res) => {
 });
 
 router.put('/edit/:id', async (req, res) => {
-  await connectDB();
   try {
     const { id } = req.params;
     const updateData = req.body;
 
-    const updatedExpense = await Expense.findByIdAndUpdate(id, updateData, { new: true });
-
-    if (!updatedExpense) {
-      return res.status(404).json({ error: "Expense not found." });
-    }
+    const updatedExpense = await prisma.expense.update({
+      where: { id },
+      data: updateData
+    });
 
     res.status(200).json({
       message: "Expense updated successfully!",
@@ -320,28 +310,32 @@ router.put('/edit/:id', async (req, res) => {
     });
   } catch (error) {
     console.error(error.message);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Expense not found." });
+    }
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 router.delete('/delete/:id', async (req, res) => {
-  await connectDB();
   try {
     const { id } = req.params;
-    const expense = await Expense.findById(id);
+    const expense = await prisma.expense.findUnique({ where: { id } });
 
     if (!expense) {
       return res.status(404).json({ error: "Expense not found." });
     }
 
     // Add amount back to budget
-    const budget = await Budget.findOne({ user: expense.user });
+    const budget = await prisma.budget.findFirst({ where: { userId: expense.userId } });
     if (budget) {
-      budget.currentAmount += expense.amount;
-      await budget.save();
+      await prisma.budget.update({
+        where: { id: budget.id },
+        data: { currentAmount: budget.currentAmount + expense.amount }
+      });
     }
 
-    await Expense.findByIdAndDelete(id);
+    await prisma.expense.delete({ where: { id } });
 
     res.status(200).json({ message: "Expense deleted successfully!" });
   } catch (error) {

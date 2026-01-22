@@ -18,6 +18,7 @@ import CustomExpense from './components/Home/CustomExpense';
 import Achievement from './components/Home/Achievement';
 import Advisor from './components/Home/Advisor';
 import BudgetHistoryView from './components/Home/BudgetHistoryView';
+import BlogView from './components/BlogView';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="/achievement" element={<Achievement />} />
               <Route path="/advisor" element={<Advisor />} />
               <Route path="/budget-history" element={<BudgetHistoryView />} />
+              <Route path="/blog/:id" element={<BlogView />} />
             </Routes>
           </Layout>
         </BudgetProvider>
@@ -52,7 +54,7 @@ function App() {
 const Layout = ({ children }) => {
   const location = useLocation();
 
-  const hideNavbar = location.pathname === "/" || location.pathname === "/signup" || location.pathname === "/login";
+  const hideNavbar = ["/", "/signup", "/login"].includes(location.pathname) || location.pathname.startsWith("/blog/");
 
   return (
     <>

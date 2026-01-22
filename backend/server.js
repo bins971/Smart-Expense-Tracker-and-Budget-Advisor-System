@@ -1,23 +1,16 @@
-const dotenv = require("dotenv");
-const path = require("path");
-dotenv.config({ path: path.join(__dirname, ".env") });
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const mongoose = require('mongoose');
 const userRoutes = require("./routes/auth");
 const budgetRoutes = require("./routes/budget");
 const goalRoutes = require("./routes/goal");
-const connectDB = require("./config/db");
 const ExpenseRoutes = require("./routes/expense");
 const advisorRoutes = require("./routes/advisor");
 const subscriptionRoutes = require("./routes/subscription");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Connect to Database
-connectDB();
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(bodyParser.json());

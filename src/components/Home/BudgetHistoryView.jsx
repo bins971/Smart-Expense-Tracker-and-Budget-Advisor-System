@@ -19,52 +19,67 @@ const Row = ({ record }) => {
 
     return (
         <>
-            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+            <TableRow sx={{
+                '& > *': { borderBottom: 'unset' },
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.02)' },
+                transition: 'background-color 0.2s ease'
+            }}>
                 <TableCell>
-                    <IconButton size="small" onClick={() => setOpen(!open)}>
+                    <IconButton size="small" onClick={() => setOpen(!open)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
-                <TableCell component="th" scope="row" sx={{ fontFamily: 'Poppins', fontWeight: 600 }}>
+                <TableCell component="th" scope="row" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#f8fafc' }}>
                     {archivedDate.toLocaleDateString()}
                 </TableCell>
-                <TableCell sx={{ fontFamily: 'Poppins' }}>{archivedDate.toLocaleTimeString()}</TableCell>
-                <TableCell sx={{ fontFamily: 'Poppins' }}>₱{record.totalAmount.toLocaleString()}</TableCell>
+                <TableCell sx={{ fontFamily: 'Poppins', color: '#cbd5e1' }}>{archivedDate.toLocaleTimeString()}</TableCell>
+                <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#f8fafc' }}>₱{record.totalAmount.toLocaleString()}</TableCell>
                 <TableCell>
                     <Chip
                         label={`Saved ₱${record.remainingAmount.toLocaleString()}`}
-                        color={record.remainingAmount > 0 ? "success" : "default"}
-                        size="small"
-                        sx={{ fontFamily: 'Poppins', fontWeight: 500 }}
+                        sx={{
+                            fontFamily: 'Poppins',
+                            fontWeight: 600,
+                            bgcolor: record.remainingAmount > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                            color: record.remainingAmount > 0 ? '#10B981' : '#EF4444',
+                            border: `1px solid ${record.remainingAmount > 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                            fontSize: '0.75rem'
+                        }}
                     />
                 </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ margin: 2 }}>
-                            <Typography variant="subtitle1" gutterBottom component="div" sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>
-                                Expense Breakdown
+                        <Box sx={{
+                            margin: 2,
+                            padding: 2,
+                            borderRadius: '16px',
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)'
+                        }}>
+                            <Typography variant="subtitle1" gutterBottom component="div" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 1 }}>
+                                Detailed Breakdown
                             </Typography>
                             <Table size="small" aria-label="expenses">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-                                        <TableCell sx={{ fontWeight: 700 }}>Category</TableCell>
-                                        <TableCell sx={{ fontWeight: 700 }} align="right">Amount</TableCell>
+                                        <TableCell sx={{ fontWeight: 600, fontFamily: 'Poppins', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 600, fontFamily: 'Poppins', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Category</TableCell>
+                                        <TableCell sx={{ fontWeight: 600, fontFamily: 'Poppins', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }} align="right">Amount</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {record.expenses.map((exp, idx) => (
                                         <TableRow key={idx}>
-                                            <TableCell>{exp.name}</TableCell>
-                                            <TableCell>{exp.category}</TableCell>
-                                            <TableCell align="right">₱{exp.amount.toLocaleString()}</TableCell>
+                                            <TableCell sx={{ fontFamily: 'Poppins', fontSize: '0.85rem', color: '#f1f5f9', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{exp.name}</TableCell>
+                                            <TableCell sx={{ fontFamily: 'Poppins', fontSize: '0.85rem', color: '#cbd5e1', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{exp.category}</TableCell>
+                                            <TableCell align="right" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#f8fafc', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>₱{exp.amount.toLocaleString()}</TableCell>
                                         </TableRow>
                                     ))}
                                     {record.expenses.length === 0 && (
                                         <TableRow>
-                                            <TableCell colSpan={3} align="center">No expenses recorded for this period.</TableCell>
+                                            <TableCell colSpan={3} align="center" sx={{ color: 'rgba(255,255,255,0.3)', py: 2 }}>No expense records in this snapshot.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>
@@ -99,57 +114,116 @@ const BudgetHistoryView = () => {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
-                <CircularProgress />
-            </Box>
+            <div className={styles.dbody} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <CircularProgress sx={{ color: '#818cf8' }} />
+            </div>
         );
     }
 
     return (
-        <div className={styles.dbody}>
-            <Container maxWidth="lg" sx={{ mt: 4 }}>
-                <Box display="flex" alignItems="center" mb={4}>
-                    <Button
-                        startIcon={<ArrowBackIcon />}
-                        onClick={() => navigate('/home')}
-                        sx={{ color: '#4F46E5', textTransform: 'none', fontWeight: 600, fontFamily: 'Poppins' }}
-                    >
-                        Back to Dashboard
-                    </Button>
-                    <Typography variant="h4" sx={{ ml: 2, fontFamily: 'Poppins', fontWeight: 800, color: '#1F2937' }}>
-                        Budget History
-                    </Typography>
+        <div className={styles.dbody} style={{ paddingBottom: '100px' }}>
+            <Container maxWidth="lg" sx={{ pt: 12 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={6} className={styles.fadeInUp}>
+                    <Box>
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => navigate('/home')}
+                            sx={{
+                                color: '#a5b4fc',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontFamily: 'Poppins',
+                                mb: 1,
+                                '&:hover': { background: 'rgba(129, 140, 248, 0.1)' }
+                            }}
+                        >
+                            Return to Dashboard
+                        </Button>
+                        <Typography variant="h3" sx={{ fontFamily: 'Poppins', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                            Budget Archives
+                        </Typography>
+                    </Box>
+
+                    <Box sx={{ background: 'rgba(255, 255, 255, 0.05)', padding: '15px 25px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'right' }}>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Cycles</Typography>
+                        <Typography sx={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 800 }}>{history.length}</Typography>
+                    </Box>
                 </Box>
 
                 <Card sx={{
-                    borderRadius: '24px',
+                    borderRadius: '28px',
                     overflow: 'hidden',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(20px)'
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    backdropFilter: 'blur(24px)',
+                    position: 'relative'
                 }} className={styles.fadeInUp}>
-                    <TableContainer>
-                        <Table aria-label="budget history table">
+                    <TableContainer sx={{ maxHeight: 'calc(100vh - 400px)' }}>
+                        <Table stickyHeader aria-label="budget history table">
                             <TableHead>
-                                <TableRow sx={{ bgcolor: '#F9FAFB' }}>
-                                    <TableCell />
-                                    <TableCell sx={{ fontWeight: 700, fontFamily: 'Poppins' }}>Date</TableCell>
-                                    <TableCell sx={{ fontWeight: 700, fontFamily: 'Poppins' }}>Time</TableCell>
-                                    <TableCell sx={{ fontWeight: 700, fontFamily: 'Poppins' }}>Budget Amount</TableCell>
-                                    <TableCell sx={{ fontWeight: 700, fontFamily: 'Poppins' }}>Status</TableCell>
+                                <TableRow>
+                                    <TableCell sx={{ bgcolor: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.1)' }} />
+                                    <TableCell sx={{
+                                        bgcolor: 'rgba(15, 23, 42, 0.8)',
+                                        fontWeight: 600,
+                                        fontFamily: 'Poppins',
+                                        color: 'rgba(255,255,255,0.5)',
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1.5px',
+                                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                                    }}>Date Captured</TableCell>
+                                    <TableCell sx={{
+                                        bgcolor: 'rgba(15, 23, 42, 0.8)',
+                                        fontWeight: 600,
+                                        fontFamily: 'Poppins',
+                                        color: 'rgba(255,255,255,0.5)',
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1.5px',
+                                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                                    }}>Timestamp</TableCell>
+                                    <TableCell sx={{
+                                        bgcolor: 'rgba(15, 23, 42, 0.8)',
+                                        fontWeight: 600,
+                                        fontFamily: 'Poppins',
+                                        color: 'rgba(255,255,255,0.5)',
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1.5px',
+                                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                                    }}>Allocated Budget</TableCell>
+                                    <TableCell sx={{
+                                        bgcolor: 'rgba(15, 23, 42, 0.8)',
+                                        fontWeight: 600,
+                                        fontFamily: 'Poppins',
+                                        color: 'rgba(255,255,255,0.5)',
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1.5px',
+                                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                                    }}>Performance</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {history.map((record) => (
-                                    <Row key={record._id} record={record} />
+                                    <Row key={record.id || record._id} record={record} />
                                 ))}
                                 {history.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
-                                            <Typography variant="body1" color="textSecondary" sx={{ fontFamily: 'Poppins' }}>
-                                                No budget history found. Start your first budget to see history later!
-                                            </Typography>
+                                        <TableCell colSpan={5} align="center" sx={{ py: 12, border: 'none' }}>
+                                            <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                                                <Box sx={{ p: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <Typography variant="h2" sx={{ opacity: 0.2 }}>📁</Typography>
+                                                </Box>
+                                                <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+                                                    No archived data found
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ fontFamily: 'Poppins', color: 'rgba(255,255,255,0.3)', maxWidth: '300px' }}>
+                                                    Your financial journey hasn't been archived yet. Your records will appear here once you reset a budget cycle.
+                                                </Typography>
+                                            </Box>
                                         </TableCell>
                                     </TableRow>
                                 )}

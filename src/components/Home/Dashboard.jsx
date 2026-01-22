@@ -26,6 +26,8 @@ ChartJS.register(ArcElement, CategoryScale, LinearScale, Title, Tooltip, Legend,
 const Dashboard = () => {
   const navigate = useNavigate();
   const [totalAmount, setTotalAmount] = useState(null);
+  const [spendableBudget, setSpendableBudget] = useState(null);
+  const [savingsTarget, setSavingsTarget] = useState(0);
   const [currentAmount, setCurrentAmount] = useState(null);
   const [startdate, setstartdate] = useState(null);
   const [enddate, setenddate] = useState(null);
@@ -38,7 +40,10 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openAddModal, setOpenAddModal] = useState(false);
   const [newExpense, setNewExpense] = useState({ name: '', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
-  const [smartProgress, setSmartProgress] = useState({ value: 0, color: 'primary', message: '' });
+  const [smartProgress, setSmartProgress] = useState({ value: 0, color: 'primary', message: '', icon: null });
+  const [wealthArchitecture, setWealthArchitecture] = useState([]);
+  const [savingsVelocity, setSavingsVelocity] = useState(0);
+  const [anomalyAlert, setAnomalyAlert] = useState(null);
 
   const [goals, setGoals] = useState([]);
   const [openGoalModal, setOpenGoalModal] = useState(false);
@@ -58,80 +63,75 @@ const Dashboard = () => {
       try {
         if (!user || (!user.id && !user._id)) return;
         const userId = user.id || user._id;
-
-        let bTotal = 0;
-        let bCurrent = 0;
-        let bStart = null;
-        let bEnd = null;
-
-        try {
-          const response = await axios.get(`${API_URL}/budget/fetch/${userId}`);
-          bTotal = response.data.totalAmount;
-          bCurrent = response.data.currentAmount;
-          bStart = response.data.startdate;
-          bEnd = response.data.enddate;
-
-          setTotalAmount(bTotal);
-          setCurrentAmount(bCurrent);
-
-          if (bStart) {
-            setstartdate(new Date(bStart).toISOString().split('T')[0]);
-          }
-          if (bEnd) {
-            setenddate(new Date(bEnd).toISOString().split('T')[0]);
-          }
-        } catch (e) {
-          console.log("No budget found");
-          setTotalAmount(0);
-          setCurrentAmount(0);
-        }
-
-        const response1 = await axios.get(`${API_URL}/expense/category-percentage/${userId}`);
-        setCategoryPercentages(response1.data?.categoryPercentages || []);
-
-        const response2 = await axios.get(`${API_URL}/expense/daily-expenses/${userId}`)
-        setDailyExpenses(response2.data?.dailyExpenses || []);
-
-        const response3 = await axios.get(`${API_URL}/expense/all/${userId}`);
-        const expenses = response3.data?.expenses || [];
-        const sorted = expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setRecentTransactions(sorted);
-
         const userEmail = user?.email;
-        if (userEmail) {
-          try {
-            const goalsRes = await axios.get(`${API_URL}/goal/email/${userEmail}`);
-            setGoals(Array.isArray(goalsRes.data) ? goalsRes.data : []);
-          } catch (e) {
-            console.log("No goals found or error fetching goals");
-            setGoals([]);
+
+        const [budgetRes, categoryRes, dailyRes, transactionsRes, forecastRes, goalsRes] = await Promise.allSettled([
+          axios.get(`${API_URL}/budget/fetch/${userId}`),
+          axios.get(`${API_URL}/expense/category-percentage/${userId}`),
+          axios.get(`${API_URL}/expense/daily-expenses/${userId}`),
+          axios.get(`${API_URL}/expense/all/${userId}`),
+          axios.get(`${API_URL}/advisor/forecast/${userId}`),
+          userEmail ? axios.get(`${API_URL}/goal/email/${userEmail}`) : Promise.resolve({ data: [] })
+        ]);
+
+        // Process Budget
+        if (budgetRes.status === 'fulfilled') {
+          const bData = budgetRes.value.data;
+          setTotalAmount(bData.totalAmount);
+          setSavingsTarget(bData.savingsTarget || 0);
+          setSpendableBudget(bData.spendableBudget || bData.totalAmount);
+          setCurrentAmount(bData.currentAmount);
+          if (bData.startdate) setstartdate(new Date(bData.startdate).toISOString().split('T')[0]);
+          if (bData.enddate) setenddate(new Date(bData.enddate).toISOString().split('T')[0]);
+        } else {
+          console.log("No budget found or error fetching budget");
+          setTotalAmount(0); setSavingsTarget(0); setSpendableBudget(0); setCurrentAmount(0);
+        }
+
+        // Process Categories
+        if (categoryRes.status === 'fulfilled') {
+          setCategoryPercentages(categoryRes.value.data?.categoryPercentages || []);
+        }
+
+        // Process Daily Expenses
+        if (dailyRes.status === 'fulfilled') {
+          setDailyExpenses(dailyRes.value.data?.dailyExpenses || []);
+        }
+
+        // Process Transactions
+        if (transactionsRes.status === 'fulfilled') {
+          const expenses = transactionsRes.value.data?.expenses || [];
+          const sorted = expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+          setRecentTransactions(sorted);
+        }
+
+        // Process Forecast
+        if (forecastRes.status === 'fulfilled') {
+          const fData = forecastRes.value.data;
+          if (fData && fData.trend) {
+            let statusColor = '#10b981';
+            if (fData.trend === 'up') statusColor = '#f43f5e';
+            if (fData.trend === 'caution') statusColor = '#f59e0b';
+
+            setSmartProgress({
+              value: isNaN(parseFloat(fData.burnRate)) ? 0 : parseFloat(fData.burnRate),
+              color: statusColor,
+              message: fData.statusMessage || "Calculating...",
+              timeValue: isNaN(parseFloat(fData.timePercent)) ? 0 : parseFloat(fData.timePercent)
+            });
+            setAnomalyAlert(fData.anomalyAlert);
+            setWealthArchitecture(fData.projection || []);
+            setSavingsVelocity(fData.savingsVelocity || 0);
           }
         }
 
-        if (bTotal > 0) {
-          const spent = bTotal - bCurrent;
-          const budgetPercent = (spent / bTotal) * 100;
-
-          const start = new Date(bStart);
-          const end = new Date(bEnd);
-          const today = new Date();
-          const totalDuration = end - start;
-          const elapsed = today - start;
-          const timePercent = totalDuration > 0 ? Math.max(0, Math.min(100, (elapsed / totalDuration) * 100)) : 0;
-
-          let statusColor = 'success';
-          let statusMsg = 'On Track';
-          if (budgetPercent > timePercent + 10) {
-            statusColor = 'error';
-            statusMsg = 'Overspending Warning';
-          } else if (budgetPercent > timePercent) {
-            statusColor = 'warning';
-            statusMsg = 'Slightly Ahead of Schedule';
-          }
-          setSmartProgress({ value: budgetPercent, color: statusColor, message: statusMsg, timeValue: timePercent });
+        // Process Goals
+        if (goalsRes.status === 'fulfilled') {
+          setGoals(Array.isArray(goalsRes.value.data) ? goalsRes.value.data : []);
         }
+
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error in fetchData:', error);
       } finally {
         setLoading(false);
       }
@@ -146,17 +146,17 @@ const Dashboard = () => {
         {
           label: 'Daily Expenses',
           data: dailyExpenses.map((item) => item.totalAmount),
-          borderColor: '#4F46E5',
+          borderColor: '#818cf8',
           backgroundColor: (context) => {
             const ctx = context.chart.ctx;
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)');
-            gradient.addColorStop(1, 'rgba(79, 70, 229, 0.05)');
+            gradient.addColorStop(0, 'rgba(129, 140, 248, 0.3)');
+            gradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
             return gradient;
           },
-          borderWidth: 2,
-          pointBackgroundColor: '#4F46E5',
-          pointBorderColor: '#fff',
+          borderWidth: 3,
+          pointBackgroundColor: '#818cf8',
+          pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -175,25 +175,25 @@ const Dashboard = () => {
       legend: { display: false },
       title: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        titleColor: '#1F2937',
-        bodyColor: '#4B5563',
-        borderColor: '#E5E7EB',
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleColor: '#ffffff',
+        bodyColor: '#cbd5e1',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
+        padding: 12,
+        cornerRadius: 12,
         displayColors: false,
       }
     },
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#6B7280', font: { family: 'Poppins' } }
+        ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { family: 'Poppins', size: 10 } }
       },
       y: {
         beginAtZero: true,
-        grid: { color: '#F3F4F6', borderDash: [5, 5] },
-        ticks: { color: '#6B7280', font: { family: 'Poppins' } }
+        grid: { color: 'rgba(255, 255, 255, 0.05)', borderDash: [5, 5] },
+        ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { family: 'Poppins', size: 10 } }
       },
     },
     interaction: {
@@ -204,14 +204,20 @@ const Dashboard = () => {
 
   const chartCardStyle = {
     padding: '24px',
-    borderRadius: '24px',
-    background: 'rgba(255, 255, 255, 0.7)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.5)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+    borderRadius: '32px',
+    background: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(32px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
     height: '100%',
-    transition: 'transform 0.3s ease',
-    '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 12px 40px 0 rgba(31, 38, 135, 0.1)' }
+    transition: 'all 0.4s cubic-bezier(0.19, 1, 0.22, 1)',
+    color: '#ffffff',
+    '&:hover': {
+      transform: 'translateY(-10px) scale(1.02)',
+      background: 'rgba(30, 41, 59, 0.8)',
+      borderColor: 'rgba(99, 102, 241, 0.6)',
+      boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.8)'
+    }
   };
 
   return (
@@ -219,7 +225,7 @@ const Dashboard = () => {
       <div className={styles.dbody}>
         <Container maxWidth="lg" sx={{ marginTop: 4 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-            <Typography variant="body2" color="textSecondary" sx={{ fontFamily: 'Poppins', fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#94a3b8', letterSpacing: '0.05em' }}>
               {startdate} — {enddate}
             </Typography>
           </Box>
@@ -231,15 +237,16 @@ const Dashboard = () => {
           ) : (
             <Grid container spacing={4} justifyContent="center">
               <Grid item xs={12} className={styles.greetingAnim}>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={6} sx={{ borderBottom: '1px solid rgba(79, 70, 229, 0.1)', pb: 4 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={6} sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', pb: 4 }}>
                   <Box>
                     <Typography variant="h3" fontWeight="900" sx={{
                       fontFamily: 'Poppins',
-                      background: 'linear-gradient(135deg, #1E1B4B 0%, #4338CA 100%)',
+                      background: 'linear-gradient(135deg, #ffffff 0%, #c7d2fe 50%, #818cf8 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       mb: 1,
-                      letterSpacing: '-0.02em'
+                      letterSpacing: '-0.04em',
+                      filter: 'drop-shadow(0 0 20px rgba(99, 102, 241, 0.3))'
                     }}>
                       Welcome back, {getDisplayName()}
                     </Typography>
@@ -249,15 +256,16 @@ const Dashboard = () => {
                     startIcon={<HistoryIcon />}
                     onClick={() => navigate('/budget-history')}
                     sx={{
-                      bgcolor: 'rgba(79, 70, 229, 0.08)',
-                      color: '#4F46E5',
+                      bgcolor: 'rgba(255, 255, 255, 0.05)',
+                      color: '#ffffff',
                       textTransform: 'none',
                       fontWeight: 700,
                       fontFamily: 'Poppins',
                       borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
                       px: 3,
                       py: 1,
-                      '&:hover': { bgcolor: 'rgba(79, 70, 229, 0.15)' }
+                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)', borderColor: 'rgba(255, 255, 255, 0.2)' }
                     }}
                   >
                     History
@@ -272,13 +280,13 @@ const Dashboard = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      bgcolor: '#ffffff',
-                      borderRadius: '28px',
-                      border: '1px solid rgba(79, 70, 229, 0.1)',
-                      boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)'
+                      bgcolor: 'rgba(15, 23, 42, 0.6)',
+                      borderRadius: '32px',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      boxShadow: '0 20px 50px -12px rgba(0,0,0,0.5)'
                     }}>
                       <Box>
-                        <Typography variant="h5" fontWeight="800" sx={{ color: '#1E1B4B', fontFamily: 'Poppins' }}>Set Financial Budget</Typography>
+                        <Typography variant="h5" fontWeight="800" sx={{ color: '#F8FAFC', fontFamily: 'Poppins' }}>Set Financial Budget</Typography>
                       </Box>
                       <Button
                         variant="contained"
@@ -305,13 +313,13 @@ const Dashboard = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      bgcolor: '#ffffff',
-                      borderRadius: '28px',
-                      border: '1px solid rgba(244, 63, 94, 0.1)',
-                      boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)'
+                      bgcolor: 'rgba(15, 23, 42, 0.6)',
+                      borderRadius: '32px',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      boxShadow: '0 20px 50px -12px rgba(0,0,0,0.5)'
                     }}>
                       <Box>
-                        <Typography variant="h5" fontWeight="800" sx={{ color: '#1E1B4B', fontFamily: 'Poppins' }}>Analytic History</Typography>
+                        <Typography variant="h5" fontWeight="800" sx={{ color: '#F8FAFC', fontFamily: 'Poppins' }}>Analytic History</Typography>
                       </Box>
                       <Button
                         variant="contained"
@@ -334,37 +342,58 @@ const Dashboard = () => {
                 </Grid>
               </Grid>
 
-              <Grid item xs={12} md={4} className={`${styles.fadeInUp} ${styles.delay1}`}>
+              <Grid item xs={12} md={savingsTarget > 0 ? 3 : 4} className={`${styles.fadeInUp} ${styles.delay1}`}>
                 <Card sx={{
                   ...chartCardStyle,
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)',
-                  color: 'white'
+                  background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
+                  color: 'white',
+                  border: 'none',
+                  boxShadow: '0 20px 40px -10px rgba(99, 102, 241, 0.4)'
                 }} className={styles.glassCard}>
-                  <CardContent>
-                    <Typography variant="subtitle2" sx={{ opacity: 0.8, fontFamily: 'Poppins' }}>Total Budget</Typography>
-                    <Typography variant="h4" fontWeight="bold" sx={{ fontFamily: 'Poppins', my: 1 }}>₱{totalAmount?.toLocaleString()}</Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.8 }}>{startdate} - {enddate}</Typography>
+                  <CardContent sx={{ p: '24px !important' }}>
+                    <Typography variant="subtitle2" sx={{ opacity: 0.9, fontFamily: 'Poppins', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Available to Spend</Typography>
+                    <Typography variant="h3" fontWeight="900" sx={{ fontFamily: 'Poppins', my: 1, letterSpacing: '-0.02em' }}>₱{spendableBudget?.toLocaleString()}</Typography>
+                    <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 500 }}>Period: {startdate} - {enddate}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={4} className={`${styles.fadeInUp} ${styles.delay2}`}>
+              {savingsTarget > 0 && (
+                <Grid item xs={12} md={3} className={`${styles.fadeInUp} ${styles.delay1}`}>
+                  <Card sx={{
+                    ...chartCardStyle,
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    border: 'none',
+                    boxShadow: '0 20px 40px -10px rgba(16, 185, 129, 0.4)'
+                  }} className={styles.glassCard}>
+                    <CardContent sx={{ p: '24px !important' }}>
+                      <Typography variant="subtitle2" sx={{ opacity: 0.9, fontFamily: 'Poppins', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>💰 Savings Target</Typography>
+                      <Typography variant="h3" fontWeight="900" sx={{ fontFamily: 'Poppins', my: 1, letterSpacing: '-0.02em' }}>₱{savingsTarget?.toLocaleString()}</Typography>
+                      <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 500 }}>Set aside from ₱{totalAmount?.toLocaleString()}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+              <Grid item xs={12} md={savingsTarget > 0 ? 3 : 4} className={`${styles.fadeInUp} ${styles.delay2}`}>
                 <Card sx={chartCardStyle} className={styles.glassCard}>
-                  <CardContent>
-                    <Typography variant="subtitle2" color="textSecondary" sx={{ fontFamily: 'Poppins' }}>Remaining</Typography>
-                    <Typography variant="h4" fontWeight="bold" color="primary" sx={{ fontFamily: 'Poppins', my: 1 }}>₱{currentAmount?.toLocaleString()}</Typography>
-                    <LinearProgress variant="determinate" value={((currentAmount / totalAmount) * 100)} sx={{ height: 8, borderRadius: 4, bgcolor: '#EEF2FF', '& .MuiLinearProgress-bar': { bgcolor: '#4F46E5' } }} />
+                  <CardContent sx={{ p: '24px !important' }}>
+                    <Typography variant="subtitle2" sx={{ color: '#94a3b8', fontFamily: 'Poppins', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Remaining</Typography>
+                    <Typography variant="h3" fontWeight="900" sx={{ color: '#ffffff', fontFamily: 'Poppins', my: 1, letterSpacing: '-0.02em' }}>₱{currentAmount?.toLocaleString()}</Typography>
+                    <LinearProgress variant="determinate" value={spendableBudget > 0 ? ((currentAmount / spendableBudget) * 100) : 0} sx={{ height: 10, borderRadius: 5, bgcolor: 'rgba(255,255,255,0.05)', '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg, #6366f1, #a855f7)' } }} />
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={4} className={`${styles.fadeInUp} ${styles.delay3}`}>
+              <Grid item xs={12} md={savingsTarget > 0 ? 3 : 4} className={`${styles.fadeInUp} ${styles.delay3}`}>
                 <Card sx={chartCardStyle} className={styles.glassCard}>
-                  <CardContent>
-                    <Typography variant="subtitle2" color="textSecondary" sx={{ fontFamily: 'Poppins' }}>Smart Status</Typography>
-                    <Box display="flex" alignItems="center" my={1}>
-                      <Typography variant="h5" fontWeight="bold" color={smartProgress.color} sx={{ fontFamily: 'Poppins' }}>{smartProgress.message}</Typography>
+                  <CardContent sx={{ p: '24px !important' }}>
+                    <Typography variant="subtitle2" sx={{ color: '#94a3b8', fontFamily: 'Poppins', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Smart Status</Typography>
+                    <Box display="flex" alignItems="center" my={1} sx={{ minHeight: '60px' }}>
+                      <Typography variant="h5" fontWeight="900" sx={{ fontFamily: 'Poppins', letterSpacing: '-0.01em', color: smartProgress.color, lineHeight: 1.2 }}>
+                        {anomalyAlert ? "ANOMALY DETECTED" : smartProgress.message}
+                      </Typography>
                     </Box>
-                    <Typography variant="caption" color="textSecondary">
-                      Spent {Math.round(100 - (currentAmount / totalAmount * 100))}% in {Math.round(smartProgress.timeValue)}% of time
+                    <Typography variant="caption" sx={{ color: anomalyAlert ? '#f43f5e' : '#64748b', fontWeight: 600 }}>
+                      {anomalyAlert || `Spent ${spendableBudget > 0 ? Math.round(100 - (currentAmount / spendableBudget * 100)) : 0}% in ${isNaN(smartProgress.timeValue) ? 0 : Math.round(smartProgress.timeValue)}% of time`}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -381,22 +410,27 @@ const Dashboard = () => {
                     {categoryPercentages.length > 0 ? (
                       categoryPercentages.map((item, index) => (
                         <Box key={index} mb={2}>
-                          <Box display="flex" justifyContent="space-between" mb={0.5}>
-                            <Typography variant="body2" fontWeight="600" sx={{ fontFamily: 'Poppins' }}>{item.category}</Typography>
-                            <Typography variant="caption" fontWeight="600" color="textSecondary">{Number(item.percentage).toFixed(1)}%</Typography>
+                          <Box display="flex" justifyContent="space-between" mb={1}>
+                            <Typography variant="body2" fontWeight="700" sx={{ fontFamily: 'Poppins', color: '#f8fafc' }}>{item.category}</Typography>
+                            <Typography variant="caption" fontWeight="800" sx={{ color: '#818cf8', bgcolor: 'rgba(129, 140, 248, 0.1)', px: 1, borderRadius: '4px' }}>{Number(item.percentage).toFixed(1)}%</Typography>
                           </Box>
                           <LinearProgress
                             variant="determinate"
                             value={Number(item.percentage)}
                             sx={{
-                              height: 8,
-                              borderRadius: 4,
-                              bgcolor: '#F3F4F6',
+                              height: 10,
+                              borderRadius: 5,
+                              bgcolor: 'rgba(255, 255, 255, 0.05)',
                               '& .MuiLinearProgress-bar': {
-                                bgcolor: [
-                                  '#4F46E5', '#10B981', '#F43F5E', '#F59E0B', '#3B82F6', '#8B5CF6'
+                                background: [
+                                  'linear-gradient(90deg, #6366f1, #818cf8)',
+                                  'linear-gradient(90deg, #10b981, #34d399)',
+                                  'linear-gradient(90deg, #f43f5e, #fb7185)',
+                                  'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                                  'linear-gradient(90deg, #3b82f6, #60a5fa)',
+                                  'linear-gradient(90deg, #8b5cf6, #a78bfa)'
                                 ][index % 6],
-                                borderRadius: 4
+                                borderRadius: 5
                               }
                             }}
                           />
@@ -404,7 +438,7 @@ const Dashboard = () => {
                       ))
                     ) : (
                       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                        <Typography variant="body2" color="textSecondary">No data available</Typography>
+                        <Typography variant="body2" sx={{ color: '#64748b' }}>No data available</Typography>
                       </Box>
                     )}
                   </Box>
@@ -418,17 +452,43 @@ const Dashboard = () => {
 
               <Grid item xs={12} md={7} className={`${styles.fadeInUp} ${styles.delay5}`}>
                 <Card sx={chartCardStyle} className={styles.glassCard}>
-                  <Typography variant="h6" fontWeight="bold" sx={{ fontFamily: 'Poppins', mb: 3 }}>Spending Trend</Typography>
-                  <Box height="250px">
-                    <Line data={lineDataa} options={{ ...lineOptions, maintainAspectRatio: false }} />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ fontFamily: 'Poppins' }}>Neural Wealth Architecture</Typography>
+                    <Typography variant="caption" sx={{ color: '#818cf8', fontWeight: 800 }}>12-MONTH PROJECTION</Typography>
                   </Box>
+                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 2 }}>
+                    {wealthArchitecture.length > 0 ? wealthArchitecture.map((p, idx) => (
+                      <Box key={idx} sx={{
+                        minWidth: '80px',
+                        p: 2,
+                        borderRadius: '16px',
+                        bgcolor: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(129, 140, 248, 0.1)',
+                        textAlign: 'center'
+                      }}>
+                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 1 }}>{p.month}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#ffffff' }}>₱{p.netWorth?.toLocaleString() || '0'}</Typography>
+                      </Box>
+                    )) : (
+                      <Box sx={{ py: 4, textAlign: 'center', width: '100%', opacity: 0.5 }}>
+                        <Typography variant="body2" sx={{ fontFamily: 'Poppins', fontStyle: 'italic' }}>
+                          Projections will appear once your budget and spending patterns are established.
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  <Typography variant="caption" sx={{ color: '#475569', mt: 2, display: 'block', fontStyle: 'italic' }}>
+                    {savingsVelocity > 0
+                      ? `* Projections based on current monthly savings pace of ₱${savingsVelocity.toLocaleString()}.`
+                      : `* Projections based on current spending velocity and balance.`}
+                  </Typography>
                 </Card>
               </Grid>
 
               <Grid item xs={12} md={5} className={`${styles.fadeInUp} ${styles.delay4}`} id="recent-transactions">
-                <Card sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.5)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)', height: '100%' }} className={styles.glassCard}>
-                  <Box p={3} display="flex" justifyContent="space-between" alignItems="center" bgcolor="rgba(255,255,255,0.9)">
-                    <Typography variant="h6" fontWeight="bold" sx={{ fontFamily: 'Poppins' }}>Recent Transactions</Typography>
+                <Card sx={{ ...chartCardStyle, p: 0 }} className={styles.glassCard}>
+                  <Box p={3} display="flex" justifyContent="space-between" alignItems="center" bgcolor="transparent">
+                    <Typography variant="h6" fontWeight="bold" sx={{ fontFamily: 'Poppins', color: '#f8fafc' }}>Recent Transactions</Typography>
                   </Box>
 
                   <Box px={3} pb={2}>
@@ -436,11 +496,18 @@ const Dashboard = () => {
                       fullWidth
                       size="small"
                       variant="outlined"
-                      placeholder="Search..."
+                      placeholder="Search transactions..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       InputProps={{
-                        sx: { borderRadius: '12px', bgcolor: '#F9FAFB' }
+                        sx: {
+                          borderRadius: '16px',
+                          bgcolor: 'rgba(255,255,255,0.03)',
+                          color: '#ffffff',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          '&:hover': { borderColor: 'rgba(255,255,255,0.2)' },
+                          '&.Mui-focused': { borderColor: '#6366f1' }
+                        }
                       }}
                     />
                   </Box>
@@ -449,9 +516,9 @@ const Dashboard = () => {
                     <Table stickyHeader size="small">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'rgba(255,255,255,0.9)' }}>Name</TableCell>
-                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'rgba(255,255,255,0.9)' }}>Amount</TableCell>
-                          <TableCell align="right" sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'rgba(255,255,255,0.9)' }}>Action</TableCell>
+                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'transparent', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Name</TableCell>
+                          <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'transparent', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Amount</TableCell>
+                          <TableCell align="right" sx={{ fontFamily: 'Poppins', fontWeight: 600, fontSize: '0.75rem', bgcolor: 'transparent', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Action</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -459,14 +526,15 @@ const Dashboard = () => {
                           .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
                           .slice(0, 6)
                           .map((row) => (
-                            <TableRow key={row._id} sx={{
-                              '&:hover': { bgcolor: 'rgba(79, 70, 229, 0.05)' },
-                              transition: 'background-color 0.2s',
-                              borderLeft: row.isSubscription ? '4px solid #10B981' : 'none'
+                            <TableRow key={row.id || row._id} sx={{
+                              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.03)' },
+                              transition: 'all 0.2s',
+                              borderLeft: row.isSubscription ? '4px solid #10B981' : 'none',
+                              borderColor: 'rgba(255,255,255,0.05)'
                             }}>
-                              <TableCell sx={{ fontFamily: 'Poppins', fontSize: '0.8rem' }}>
+                              <TableCell sx={{ fontFamily: 'Poppins', fontSize: '0.85rem', color: '#f1f5f9', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                                 <Box display="flex" flexDirection="column">
-                                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{row.name}</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#f8fafc' }}>{row.name}</Typography>
                                   {row.isSubscription && (
                                     <Typography variant="caption" sx={{ color: '#10B981', fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase' }}>
                                       Subscription
@@ -474,10 +542,10 @@ const Dashboard = () => {
                                   )}
                                 </Box>
                               </TableCell>
-                              <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 700, fontSize: '0.8rem', color: row.isSubscription ? '#059669' : '#1E1B4B' }}>
+                              <TableCell sx={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '0.9rem', color: row.isSubscription ? '#10b981' : '#f8fafc', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                                 ₱{row.amount.toLocaleString()}
                               </TableCell>
-                              <TableCell align="right">
+                              <TableCell align="right" sx={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                                 {row.isSubscription ? (
                                   <MuiTooltip title="Subscriptions are managed in the billing section">
                                     <span>
@@ -490,7 +558,7 @@ const Dashboard = () => {
                                   <IconButton size="small" sx={{ color: '#EF4444', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' } }} onClick={async () => {
                                     if (window.confirm('Are you sure you want to delete this expense?')) {
                                       try {
-                                        await axios.delete(`${API_URL}/expense/delete/${row._id}`);
+                                        await axios.delete(`${API_URL}/expense/delete/${row.id || row._id}`);
                                         window.location.reload();
                                       } catch (e) {
                                         alert("Failed to delete expense");
@@ -514,8 +582,8 @@ const Dashboard = () => {
                         textTransform: 'none',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        color: '#4F46E5',
-                        '&:hover': { bgcolor: 'rgba(79, 70, 229, 0.05)' }
+                        color: '#818cf8',
+                        '&:hover': { bgcolor: 'rgba(129, 140, 248, 0.1)' }
                       }}
                     >
                       View Detailed Reports
@@ -525,12 +593,12 @@ const Dashboard = () => {
               </Grid>
 
               <Grid item xs={12} className={styles.fadeInUp}>
-                <Card sx={{ ...chartCardStyle, p: 4, bgcolor: '#ffffff' }} className={styles.glassCard}>
+                <Card sx={chartCardStyle} className={styles.glassCard}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
                     <Box display="flex" alignItems="center">
                       <Typography variant="h5" fontWeight="900" sx={{
                         fontFamily: 'Poppins',
-                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        background: 'linear-gradient(135deg, #ffffff 0%, #34d399 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         mr: 2
@@ -548,9 +616,10 @@ const Dashboard = () => {
                       onClick={() => setOpenGoalModal(true)}
                       startIcon={<AddIcon />}
                       sx={{
-                        bgcolor: '#10B981',
-                        borderRadius: '12px',
-                        px: 3,
+                        bgcolor: '#10b981',
+                        borderRadius: '16px',
+                        px: 4,
+                        py: 1,
                         fontWeight: 700,
                         textTransform: 'none',
                         '&:hover': { bgcolor: '#059669', transform: 'translateY(-2px)' },
@@ -564,26 +633,26 @@ const Dashboard = () => {
                   <Grid container spacing={3}>
                     {goals.length === 0 ? (
                       <Grid item xs={12}>
-                        <Box display="flex" flexDirection="column" alignItems="center" py={6} sx={{ bgcolor: '#F9FAFB', borderRadius: '20px', border: '2px dashed #E5E7EB' }}>
-                          <Typography variant="body1" color="textSecondary" sx={{ fontFamily: 'Poppins', fontWeight: 500 }}>
+                        <Box display="flex" flexDirection="column" alignItems="center" py={8} sx={{ bgcolor: 'rgba(255,255,255,0.02)', borderRadius: '32px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                          <Typography variant="body1" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#64748b' }}>
                             No active goals found. Start saving for your dreams today! 🚀
                           </Typography>
                         </Box>
                       </Grid>
                     ) : (
                       goals.map(goal => (
-                        <Grid item xs={12} md={6} lg={4} key={goal._id}>
+                        <Grid item xs={12} md={6} lg={4} key={goal.id || goal._id}>
                           <Box sx={{
                             p: 3,
-                            borderRadius: '20px',
-                            bgcolor: '#F9FAFB',
-                            border: '1px solid #EEF2FF',
+                            borderRadius: '24px',
+                            bgcolor: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
                             transition: 'all 0.3s ease',
-                            '&:hover': { bgcolor: '#ffffff', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', transform: 'scale(1.02)' }
+                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)', transform: 'translateY(-4px)' }
                           }}>
                             <Box display="flex" justifyContent="space-between" mb={2}>
-                              <Typography variant="h6" fontWeight="800" sx={{ fontFamily: 'Poppins', color: '#1E1B4B' }}>{goal.name}</Typography>
-                              <Typography variant="subtitle2" fontWeight="800" color="primary">
+                              <Typography variant="h6" fontWeight="800" sx={{ fontFamily: 'Poppins', color: '#f8fafc' }}>{goal.name}</Typography>
+                              <Typography variant="subtitle2" fontWeight="900" sx={{ color: '#818cf8', bgcolor: 'rgba(129, 140, 248, 0.1)', px: 1.5, py: 0.5, borderRadius: '8px' }}>
                                 {Math.round((goal.saved / goal.amount) * 100)}%
                               </Typography>
                             </Box>
@@ -591,21 +660,21 @@ const Dashboard = () => {
                               variant="determinate"
                               value={Math.min(100, (goal.saved / goal.amount) * 100)}
                               sx={{
-                                height: 10,
-                                borderRadius: 5,
-                                bgcolor: '#EEF2FF',
+                                height: 12,
+                                borderRadius: 6,
+                                bgcolor: 'rgba(255,255,255,0.05)',
                                 mb: 2,
                                 '& .MuiLinearProgress-bar': {
-                                  background: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%)',
-                                  borderRadius: 5
+                                  background: 'linear-gradient(90deg, #6366f1 0%, #c084fc 100%)',
+                                  borderRadius: 6
                                 }
                               }}
                             />
                             <Box display="flex" justifyContent="space-between">
-                              <Typography variant="caption" color="textSecondary" fontWeight="600">
+                              <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700 }}>
                                 ₱{goal.saved.toLocaleString()} Saved
                               </Typography>
-                              <Typography variant="caption" color="textSecondary" fontWeight="600">
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
                                 Target: ₱{goal.amount.toLocaleString()}
                               </Typography>
                             </Box>
@@ -621,19 +690,19 @@ const Dashboard = () => {
                 <Box display="flex" justifyContent="center">
                   <Button
                     variant="contained"
-                    onClick={() => setOpenAddModal(true)}
+                    onClick={() => navigate('/addform')}
                     startIcon={<AddIcon sx={{ fontSize: '2rem !important' }} />}
                     sx={{
-                      bgcolor: '#4F46E5',
+                      bgcolor: '#6366f1',
                       color: 'white',
-                      borderRadius: '100px',
+                      borderRadius: '24px',
                       px: 8,
-                      py: 2.5,
+                      py: 3,
                       fontSize: '1.25rem',
-                      fontWeight: 800,
+                      fontWeight: 900,
                       textTransform: 'none',
                       fontFamily: 'Poppins',
-                      boxShadow: '0 20px 40px -10px rgba(79, 70, 229, 0.4)',
+                      boxShadow: '0 20px 40px -10px rgba(99, 102, 241, 0.5)',
                       '&:hover': {
                         bgcolor: '#4338CA',
                         transform: 'translateY(-4px) scale(1.02)',
@@ -651,17 +720,18 @@ const Dashboard = () => {
         </Container>
       </div>
 
-      <Box sx={{ position: 'fixed', bottom: 40, right: 40, zIndex: 2000 }}>
+      <Box sx={{ position: 'fixed', bottom: 80, right: 40, zIndex: 2000 }}>
         <MuiTooltip title="Quick Add Expense" placement="left">
           <Fab
             color="primary"
             aria-label="add"
-            onClick={() => setOpenAddModal(true)}
+            onClick={() => navigate('/addform')}
             sx={{
-              bgcolor: '#4F46E5',
-              '&:hover': { bgcolor: '#4338CA' },
-              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.5)',
-              width: 64, height: 64
+              bgcolor: '#6366f1',
+              '&:hover': { bgcolor: '#818cf8', transform: 'scale(1.1)' },
+              boxShadow: '0 15px 30px -5px rgba(99, 102, 241, 0.6)',
+              width: 72, height: 72,
+              transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)'
             }}
           >
             <AddIcon sx={{ fontSize: 30 }} />

@@ -70,22 +70,26 @@ export default function CheckExpense() {
   };
 
   return (
-    <div>
+    <div className={styles.pageContainer}>
       <div className={styles.dailyexpense}>
-        <h1>Expenses</h1>
+        <h1>Expense Analytics</h1>
 
         <div className={styles.togbtn}>
-          <div>
-            <button
-              className={viewMode === "daily" ? styles.activeButton : ""}
-              onClick={() => toggleViewMode("daily")}>Daily</button></div>
-          <div>
-            <button
-              className={viewMode === "monthly" ? styles.activeButton : ""}
-              onClick={() => toggleViewMode("monthly")}>Monthly</button></div>
+          <button
+            className={viewMode === "daily" ? styles.activeButton : ""}
+            onClick={() => toggleViewMode("daily")}
+          >
+            Daily
+          </button>
+          <button
+            className={viewMode === "monthly" ? styles.activeButton : ""}
+            onClick={() => toggleViewMode("monthly")}
+          >
+            Monthly
+          </button>
         </div>
 
-        <div>
+        <div className={styles.datePickerWrapper}>
           <DatePicker
             selected={selectedDate}
             onChange={handleDateChange}
@@ -95,8 +99,8 @@ export default function CheckExpense() {
           />
         </div>
 
-        <div>
-          <h3>Total Amount: ₱{calculateTotalAmount().toFixed(2)}</h3>
+        <div className={styles.totalBanner}>
+          <h3>Total Expenditure: ₱{calculateTotalAmount().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
         </div>
       </div>
 
@@ -105,20 +109,19 @@ export default function CheckExpense() {
       {filteredExpenses.length > 0 ? (
         <div className={styles.cardContainer}>
           {filteredExpenses.map((expense) => (
-            <div key={expense._id} className={styles.card}>
+            <div key={expense.id || expense._id} className={styles.card}>
               <h3>{expense.name}</h3>
-              <p><strong>Category:</strong> {expense.category}</p>
-              <p><strong>Amount:</strong> ₱{expense.amount}</p>
-              <p><strong>Date:</strong> {new Date(expense.date).toLocaleDateString()}</p>
-              <p><strong>Description:</strong> {expense.description || "N/A"}</p>
-
+              <p><strong>Category</strong> <span>{expense.category}</span></p>
+              <p><strong>Amount</strong> <span className={styles.amount}>₱{expense.amount.toLocaleString()}</span></p>
+              <p><strong>Date</strong> <span>{new Date(expense.date).toLocaleDateString()}</span></p>
+              <p><strong>Description</strong> <span>{expense.description || "No description provided"}</span></p>
             </div>
           ))}
         </div>
       ) : (
-
         <div className={styles.nodata}>
-          <img src={NoData} alt="Error" style={{ maxWidth: "200px", marginBottom: "20px" }} />
+          <img src={NoData} alt="No Data" style={{ maxWidth: "200px", opacity: 0.6, marginBottom: "10px" }} />
+          <p>No expenses recorded for this selection</p>
         </div>
       )}
     </div>
