@@ -14,6 +14,7 @@ import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import SubscriptionsIcon from '@mui/icons-material/Subscriptions';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import SpeedIcon from '@mui/icons-material/Speed';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import styles from '../../styles/home.module.css';
 
 const HowItWorks = () => {
