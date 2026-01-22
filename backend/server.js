@@ -14,7 +14,10 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "https://smart-expense-tracker-and-budget-ad.vercel.app"],
+  credentials: true
+}));
 
 // Health Check
 app.get("/health", (req, res) => res.status(200).json({ status: "UP", timestamp: new Date() }));
