@@ -32,15 +32,17 @@ app.use("/api/goal", goalRoutes);
 app.use("/api/advisor", advisorRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 
-// Serve static assets if in production
-// Serve static assets if in production
-if (process.env.NODE_ENV === "production") {
-  const path = require("path");
-  // Check if build is in root (Railway) or sibling (Local)
-  const buildPath = path.join(__dirname, "../build");
+// Serve static assets (ALWAYS try to if build exists, regardless of NODE_ENV)
+const path = require("path");
+const fs = require("fs");
+// Check if build is in root (Railway) or sibling (Local)
+const buildPath = path.join(__dirname, "../build");
 
-  console.log(`Serve static files from: ${buildPath}`);
+console.log(`[DEBUG] NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`[DEBUG] Checking for build at: ${buildPath}`);
 
+if (fs.existsSync(buildPath)) {
+  console.log(`[DEBUG] Build folder FOUND. Serving static files.`);
   app.use(express.static(buildPath));
 
   app.get("*", (req, res) => {
@@ -49,6 +51,17 @@ if (process.env.NODE_ENV === "production") {
       return res.status(404).json({ message: "API endpoint not found" });
     }
     res.sendFile(path.resolve(buildPath, "index.html"));
+  });
+} else {
+  console.log(`[DEBUG] Build folder NOT FOUND at ${buildPath}`);
+  // Fallback route to help debug if the frontend isn't building
+  app.get("/", (req, res) => {
+    res.send(`
+      <h1>Backend is Online</h1>
+      <p>NODE_ENV: ${process.env.NODE_ENV}</p>
+      <p>Build Path Checked: ${buildPath}</p>
+      <p style="color:red">Build folder not found. Did 'npm run build' fail?</p>
+    `);
   });
 }
 
