@@ -36,12 +36,14 @@
     "styled-components": "^6.1.13"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node backend/server.js",
     "dev": "react-scripts start",
+    "client": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server": "node backend/server.js"
+    "server": "node backend/server.js",
+    "postinstall": "npm install --prefix backend"
   },
   "eslintConfig": {
     "extends": [
