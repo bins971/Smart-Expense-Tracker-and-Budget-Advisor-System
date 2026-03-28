@@ -39,9 +39,11 @@
     "start": "node backend/server.js",
     "dev": "react-scripts start",
     "client": "react-scripts start",
-    "build": "CI=false react-scripts build",
+    "build": "npx --prefix backend prisma generate --schema=./backend/prisma/schema.prisma && CI=false react-scripts build",
     "start-server": "node backend/server.js",
+    "render-postbuild": "npm run build",
     "heroku-postbuild": "npm run build",
+    "prisma:generate": "npx --prefix backend prisma generate --schema=./backend/prisma/schema.prisma",
     "eject": "react-scripts eject",
     "server": "node backend/server.js",
     "postinstall": "npm install --prefix backend"
